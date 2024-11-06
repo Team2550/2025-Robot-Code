@@ -29,8 +29,8 @@ public class exampleAuto extends SequentialCommandGroup {
         Trajectory exampleTrajectory =
             TrajectoryGenerator.generateTrajectory(
                 new Pose2d(0, 0, new Rotation2d(0.01)),
-                List.of(new Translation2d(0.5, 0.5), new Translation2d(0, 0.5)),
-                new Pose2d(0.0, 1.5, new Rotation2d(Math.PI)),
+                List.of(new Translation2d(1.0, 0.0), new Translation2d(1.0, 1.0), new Translation2d(0, 1.0)),
+                new Pose2d(0.0, 0.01, new Rotation2d(Math.PI)),
                 config);
 
         var thetaController =
