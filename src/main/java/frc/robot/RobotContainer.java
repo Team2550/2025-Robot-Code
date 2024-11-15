@@ -72,7 +72,7 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        driveToTag.onTrue(new InstantCommand(() -> s_Swerve.actuallyMoveToStuff()));
+        driveToTag.whileTrue(new alignToTagCommand(s_Swerve));
     }
 
     /**

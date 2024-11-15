@@ -96,33 +96,6 @@ public class Swerve extends SubsystemBase {
     
     }
 
-    public void actuallyMoveToStuff(){ //TODO: Make this a good name. 
-        ChassisSpeeds chassisSpeeds = getMoveToStuff();
-        Translation2d translation = new Translation2d(chassisSpeeds.vyMetersPerSecond, chassisSpeeds.vxMetersPerSecond);
-        translation = new Translation2d(MathUtil.applyDeadband(translation.getX(), 0.1), MathUtil.applyDeadband(translation.getY(), 0.1));
-        
-        double rotation = chassisSpeeds.omegaRadiansPerSecond;
-        rotation = MathUtil.applyDeadband(rotation, 1/720);
-
-        boolean fieldRelative = false;
-        
-        drive(translation, rotation, fieldRelative, false);
-    }
-
-    public ChassisSpeeds getMoveToStuff(){ //TODO: Make this a good name. 
-        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0, 0 , 0);
-        double[] pose = LimelightHelpers.getBotPose_TargetSpace(Constants.limelightName);
-        
-        chassisSpeeds.vxMetersPerSecond = pose[0]*2.0; // Multiplying is to adjust the agressiveness. 
-        if(pose[2] != 0){
-            chassisSpeeds.vyMetersPerSecond = (pose[2]+2)*-2.0; // -2 is the distance that the robot will try to go to. 
-        }
-        chassisSpeeds.omegaRadiansPerSecond = Math.toRadians(pose[4]*3.0); 
-
-        return chassisSpeeds;
-
-    }
-
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         //if(fieldRelative) {fieldRelative = false;}
         //else{fieldRelative = true; }
