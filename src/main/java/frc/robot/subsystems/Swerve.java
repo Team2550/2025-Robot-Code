@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -21,9 +22,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Swerve extends SubsystemBase {
@@ -64,7 +67,7 @@ public class Swerve extends SubsystemBase {
                     new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
                     Constants.Swerve.maxSpeed, // Max module speed, in m/s
                     Math.sqrt((Constants.Swerve.trackWidth/2) * (Constants.Swerve.trackWidth/2) + (Constants.Swerve.wheelBase/2) * (Constants.Swerve.wheelBase/2)), // Drive base radius in meters. Distance from robot center to furthest module.
-                    new ReplanningConfig(false, false) // Default path replanning config. See the API for the options here
+                    new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
             ),
             () -> {
               // Boolean supplier that controls when the path will be mirrored for the red alliance
@@ -200,25 +203,45 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    public static Command pathfindCommand(){
+        Pose2d targetPose = new Pose2d(1.90, 7.37, Rotation2d.fromDegrees(-90));
+        targetPose = new Pose2d(1.50, 5.4, Rotation2d.fromDegrees(180));
+        
+        PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
+        
+        // Since AutoBuilder is configured, we can use it to build pathfinding commands
+        Command pathfindingCommand = AutoBuilder.pathfindToPose(
+                targetPose,
+                constraints,
+                0.0, // Goal end velocity in meters/sec
+                0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+        );
+
+        return pathfindingCommand;
+    }
+
     /*Vision Functions */
     public void updateVisionLocalization() {
         boolean useMegaTag2 = Constants.useMegaTag2; //This is a work around because otherwise I get dead code warnings and it looks bad. 
         boolean doRejectUpdate = false;
         if(useMegaTag2 == false) {
             LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(Constants.limelightName);
-            
-            if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
-                if(mt1.rawFiducials[0].ambiguity > .7){doRejectUpdate = true;}
-                if(mt1.rawFiducials[0].distToCamera > 3){doRejectUpdate = true;}
-            }
+            if (mt1 != null){
+                if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
+                    if(mt1.rawFiducials[0].ambiguity > .7){doRejectUpdate = true;}
+                    if(mt1.rawFiducials[0].distToCamera > 3){doRejectUpdate = true;}
+                }
 
-            if(mt1.tagCount == 0){doRejectUpdate = true;}
+                if(mt1.tagCount == 0){doRejectUpdate = true;}
 
-            if(!doRejectUpdate){
-                m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.5,.5,9999999));
-                m_PoseEstimator.addVisionMeasurement(
-                    mt1.pose,
-                    mt1.timestampSeconds);
+                if(!doRejectUpdate){
+                    m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.5,.5,9999999));
+                    m_PoseEstimator.addVisionMeasurement(
+                        mt1.pose,
+                        mt1.timestampSeconds);
+                }
             }
         }
         else if (useMegaTag2 == true) {
