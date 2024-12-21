@@ -10,12 +10,11 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -57,35 +56,38 @@ public class Swerve extends SubsystemBase {
                     VecBuilder.fill(0.05, 0.05, Math.toRadians(5)),
                     VecBuilder.fill(0.5, 0.5, Math.toRadians(30)));
 
-        AutoBuilder.configureHolonomic(
-            this::getPose, // Robot pose supplier
-            this::setPose, // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                    new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
-                    Constants.Swerve.maxSpeed, // Max module speed, in m/s
-                    Math.sqrt((Constants.Swerve.trackWidth/2) * (Constants.Swerve.trackWidth/2) + (Constants.Swerve.wheelBase/2) * (Constants.Swerve.wheelBase/2)), // Drive base radius in meters. Distance from robot center to furthest module.
-                    new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
-            ),
-            () -> {
-              // Boolean supplier that controls when the path will be mirrored for the red alliance
-              // This will flip the path being followed to the red side of the field.
-              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-              var alliance = DriverStation.getAlliance();
-              if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-              }
-              return false;
-            },
-            this // Reference to this subsystem to set requirements
-    );
-    }
+        try{
+            RobotConfig config = RobotConfig.fromGUISettings();
+            AutoBuilder.configure(
+                this::getPose, 
+                this::setPose, 
+                this::getRobotRelativeSpeeds, 
+                this::driveRobotRelative, 
+                new PPHolonomicDriveController(
+                    new PIDConstants(5, 0, 0), 
+                    new PIDConstants(5, 0, 0)
+                ),
+                config,
+                () -> {
+                    // Boolean supplier that controls when the path will be mirrored for the red alliance
+                    // This will flip the path being followed to the red side of the field.
+                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+        
+                    var alliance = DriverStation.getAlliance();
+                    if (alliance.isPresent()) {
+                        return alliance.get() == DriverStation.Alliance.Red;
+                    }
+                    return false;
+                },
+                this
+                );
+            }catch(Exception e){
+                DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
+            }
+        }
 
     /*Drive Function */
-    public void driveRobotRelative (ChassisSpeeds speeds) {
+    private void driveRobotRelative (ChassisSpeeds speeds) {
         boolean fieldRelative = false;
         //drive(new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), speeds.omegaRadiansPerSecond, false, false);
         SwerveModuleState[] swerveModuleStates =
@@ -125,7 +127,7 @@ public class Swerve extends SubsystemBase {
 
     /*Get Info Functions */
     public Pose2d getPose() {return m_PoseEstimator.getEstimatedPosition();}
-    public Rotation2d getGyroYaw() {return Rotation2d.fromDegrees(gyro.getYaw().getValue());}
+    public Rotation2d getGyroYaw() {return new Rotation2d(gyro.getYaw().getValue());}
     public Rotation2d getHeading(){return getPose().getRotation();}
     public ChassisSpeeds getRobotRelativeSpeeds(){return Constants.Swerve.swerveKinematics.toChassisSpeeds(getModuleStates());}
     
@@ -155,7 +157,7 @@ public class Swerve extends SubsystemBase {
                 return true;
             } else {
                 return false;
-            }
+            } 
     }
 
     /*Setter Funtions */
@@ -215,8 +217,7 @@ public class Swerve extends SubsystemBase {
         Command pathfindingCommand = AutoBuilder.pathfindToPose(
                 targetPose,
                 constraints,
-                0.0, // Goal end velocity in meters/sec
-                0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+                0.0 // Goal end velocity in meters/sec
         );
 
         return pathfindingCommand;
@@ -248,7 +249,7 @@ public class Swerve extends SubsystemBase {
             LimelightHelpers.SetRobotOrientation(Constants.limelightName, m_PoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
             LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(Constants.limelightName);
             if(mt2 != null) {
-                if(Math.abs(gyro.getRate()) > 720) {doRejectUpdate = true;}// If the angular velocity is greater than 720 degrees per second, ignore vision updates
+                if(Math.abs(gyro.getAngularVelocityZWorld().getValueAsDouble()) > 720) {doRejectUpdate = true;}// If the angular velocity is greater than 720 degrees per second, ignore vision updates
                 if(mt2.tagCount == 0){doRejectUpdate = true;}
                 if(!doRejectUpdate){
                     m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
