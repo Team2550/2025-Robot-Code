@@ -1,5 +1,7 @@
 package frc.robot;
 
+import org.photonvision.PhotonCamera;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.GenericHID;
@@ -39,7 +41,8 @@ public class RobotContainer {
     private final JoystickButton driveToPoint = new JoystickButton(driver, XboxController.Button.kX.value);
 
     /* Subsystems */
-    private final Swerve s_Swerve = new Swerve();
+    private final photonVision s_PhotonVision = new photonVision(Constants.vision.localizationCameraOneName);
+    private final Swerve s_Swerve = new Swerve(s_PhotonVision);
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */

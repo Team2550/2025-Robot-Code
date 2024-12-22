@@ -4,9 +4,18 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.lib.util.COTSTalonFXSwerveConstants;
@@ -26,6 +35,22 @@ public final class Constants {
     public static final double stickDeadband = 0.1;
     public static final String limelightName = "limelight";
     public static final boolean useMegaTag2 = false; //Set to false to use MegaTag1
+
+    public static final class vision {
+        public static final AprilTagFieldLayout kTagLayout = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
+
+        public static final String localizationCameraOneName = "limelight-camera";
+        public static final Transform3d localizationCameraOneToRobot = new Transform3d(
+                new Translation3d(
+                                Units.inchesToMeters(0),
+                                Units.inchesToMeters(0),
+                                Units.inchesToMeters(0)),
+                new Rotation3d(0, 
+                Rotation2d.fromDegrees(0).getRadians(), 
+                Rotation2d.fromDegrees(0).getRadians()));
+        
+        public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
+    }
 
     public static final class Swerve {
         public static final int pigeonID = 0; 

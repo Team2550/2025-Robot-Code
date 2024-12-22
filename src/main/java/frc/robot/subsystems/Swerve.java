@@ -33,9 +33,11 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
+    private photonVision m_photonVision;
     private final SwerveDrivePoseEstimator m_PoseEstimator;
 
-    public Swerve() {
+    public Swerve(photonVision vision) {
+        m_photonVision = vision;
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.setYaw(0);
@@ -194,6 +196,7 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("PhotonVision Data", m_photonVision.getMovement());
         updateVisionLocalization();
         m_PoseEstimator.update(getGyroYaw(), getModulePositions());
         updateLocalization();
@@ -225,39 +228,13 @@ public class Swerve extends SubsystemBase {
 
     /*Vision Functions */
     public void updateVisionLocalization() {
-        boolean useMegaTag2 = Constants.useMegaTag2; //This is a work around because otherwise I get dead code warnings and it looks bad. 
-        boolean doRejectUpdate = false;
-        if(useMegaTag2 == false) {
-            LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(Constants.limelightName);
-            if (mt1 != null){
-                if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
-                    if(mt1.rawFiducials[0].ambiguity > .7){doRejectUpdate = true;}
-                    if(mt1.rawFiducials[0].distToCamera > 3){doRejectUpdate = true;}
-                }
+        var visionEst = m_photonVision.getEstimatedGlobalPose();
+            visionEst.ifPresent(
+                    est -> {
+                        m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraOneStdDev);
+                        m_PoseEstimator.addVisionMeasurement(
+                                est.estimatedPose.toPose2d(), est.timestampSeconds);
+                    });
 
-                if(mt1.tagCount == 0){doRejectUpdate = true;}
-
-                if(!doRejectUpdate){
-                    m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.5,.5,9999999));
-                    m_PoseEstimator.addVisionMeasurement(
-                        mt1.pose,
-                        mt1.timestampSeconds);
-                }
-            }
-        }
-        else if (useMegaTag2 == true) {
-            LimelightHelpers.SetRobotOrientation(Constants.limelightName, m_PoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-            LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(Constants.limelightName);
-            if(mt2 != null) {
-                if(Math.abs(gyro.getAngularVelocityZWorld().getValueAsDouble()) > 720) {doRejectUpdate = true;}// If the angular velocity is greater than 720 degrees per second, ignore vision updates
-                if(mt2.tagCount == 0){doRejectUpdate = true;}
-                if(!doRejectUpdate){
-                    m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
-                    m_PoseEstimator.addVisionMeasurement(
-                        mt2.pose,
-                        mt2.timestampSeconds);
-            }
-            }
-        }
     }
 }
