@@ -13,18 +13,32 @@ public class photonVision {
     private final PhotonCamera m_cameraOne;
     private final PhotonPoseEstimator m_cameraOneEstimator;
 
-    public photonVision(String cameraName){
-        m_cameraOne = new PhotonCamera(cameraName);
+    private final PhotonCamera m_cameraTwo;
+    private final PhotonPoseEstimator m_cameraTwoEstimator;
+
+    public photonVision(String cameraOneName, String cameraTwoName){
+        m_cameraOne = new PhotonCamera(cameraOneName);
         m_cameraOneEstimator = new PhotonPoseEstimator(Constants.vision.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.vision.localizationCameraOneToRobot);
         m_cameraOneEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
+        m_cameraTwo = new PhotonCamera(cameraTwoName);
+        m_cameraTwoEstimator = new PhotonPoseEstimator(Constants.vision.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.vision.localizationCameraOneToRobot);
+        m_cameraTwoEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+
     }
 
-    public Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
+    public Optional<EstimatedRobotPose> getEstimatedGlobalPose(String cameraName) {
         Optional<EstimatedRobotPose> visionEst = Optional.empty();
-        for (var change : m_cameraOne.getAllUnreadResults()) {
-            visionEst = m_cameraOneEstimator.update(change);
-            //updateEstimationStdDevs(visionEst, m_cameraOneEstimator, change.getTargets());
+        if(m_cameraOne.getName() == cameraName){
+            for (var change : m_cameraOne.getAllUnreadResults()) {
+                visionEst = m_cameraOneEstimator.update(change);
+                //updateEstimationStdDevs(visionEst, m_cameraOneEstimator, change.getTargets());
+            }
+        }else if(m_cameraTwo.getName() == cameraName){
+            for (var change : m_cameraTwo.getAllUnreadResults()) {
+                visionEst = m_cameraTwoEstimator.update(change);
+                //updateEstimationStdDevs(visionEst, m_cameraOneEstimator, change.getTargets());
+            }
         }
         return visionEst;
     }

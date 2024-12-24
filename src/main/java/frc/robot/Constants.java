@@ -48,6 +48,19 @@ public final class Constants {
                 Rotation2d.fromDegrees(0).getRadians()));
         
         public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
+
+
+        public static final String localizationCameraTwoName = "Front_Right_Camera";
+        public static final Transform3d localizationCameraTwoToRobot = new Transform3d(
+                new Translation3d(
+                                Units.inchesToMeters(0),
+                                Units.inchesToMeters(0),
+                                Units.inchesToMeters(0)),
+                new Rotation3d(0, 
+                Rotation2d.fromDegrees(0).getRadians(), 
+                Rotation2d.fromDegrees(0).getRadians()));
+        
+        public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
     }
 
     public static final class Swerve {

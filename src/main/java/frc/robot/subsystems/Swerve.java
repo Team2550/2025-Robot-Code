@@ -228,13 +228,20 @@ public class Swerve extends SubsystemBase {
 
     /*Vision Functions */
     public void updateVisionLocalization() {
-        var visionEst = m_photonVision.getEstimatedGlobalPose();
-            visionEst.ifPresent(
-                    est -> {
-                        m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraOneStdDev);
-                        m_PoseEstimator.addVisionMeasurement(
-                                est.estimatedPose.toPose2d(), est.timestampSeconds);
-                    });
+        var visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraOneName);
+        visionEst.ifPresent(
+                est -> {
+                    m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraOneStdDev);
+                    m_PoseEstimator.addVisionMeasurement(
+                            est.estimatedPose.toPose2d(), est.timestampSeconds);
+                });
 
+        visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraTwoName);
+        visionEst.ifPresent(
+                est -> {
+                    m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraTwoStdDev);
+                    m_PoseEstimator.addVisionMeasurement(
+                            est.estimatedPose.toPose2d(), est.timestampSeconds);
+                });
     }
 }

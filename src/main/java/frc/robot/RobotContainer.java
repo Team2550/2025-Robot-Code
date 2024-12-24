@@ -38,7 +38,7 @@ public class RobotContainer {
     private final JoystickButton driveToPoint = new JoystickButton(driver, XboxController.Button.kX.value);
 
     /* Subsystems */
-    private final photonVision s_PhotonVision = new photonVision(Constants.vision.localizationCameraOneName);
+    private final photonVision s_PhotonVision = new photonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
     private final Swerve s_Swerve = new Swerve(s_PhotonVision);
 
 
