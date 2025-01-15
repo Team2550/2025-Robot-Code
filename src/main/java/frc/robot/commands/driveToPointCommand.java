@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 
 public class driveToPointCommand extends Command {    
+    @SuppressWarnings("unused")
     private Swerve s_Swerve;    
 
     public driveToPointCommand(Swerve s_Swerve) {
@@ -27,6 +28,7 @@ public class driveToPointCommand extends Command {
                 Units.degreesToRadians(540), Units.degreesToRadians(720));
         
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
+        @SuppressWarnings("unused")
         Command pathfindingCommand = AutoBuilder.pathfindToPose(
                 targetPose,
                 constraints,

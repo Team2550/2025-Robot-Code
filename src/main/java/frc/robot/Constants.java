@@ -32,6 +32,17 @@ public final class Constants {
         public static final double outsideZoneMultiplier = 0.1;
     }
     
+    public static final class ClimbConstants 
+    {
+        public static final int climbMotorID = 8;
+    }
+
+    public static final class grabConstants {
+        //TODO: actual id
+        public static final int grabMotorID = -1;
+        public static final double grabSpeed = 0.2;
+    }
+
     public static final double stickDeadband = 0.1;
 
     public static final class vision {
