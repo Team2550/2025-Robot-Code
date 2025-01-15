@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -23,6 +24,7 @@ import frc.robot.subsystems.*;
  */
 public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
+    private final SendableChooser<Integer> scoringHeightChooser;
 
     /* Controllers */
     private final Joystick driver = new Joystick(0);
@@ -35,11 +37,12 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
     private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
-    private final JoystickButton driveToTag = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton driveToPoint = new JoystickButton(driver, XboxController.Button.kX.value);
 
     /* Subsystems */
-    private final Swerve s_Swerve = new Swerve();
+    private final photonVision s_PhotonVision = new photonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
+    private final Swerve s_Swerve = new Swerve(s_PhotonVision);
+    private final CoralHandlerSubsystem s_CoralHandler = new CoralHandlerSubsystem();
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -55,7 +58,18 @@ public class RobotContainer {
             )
         );
 
+        scoringHeightChooser = new SendableChooser<Integer>();
+
+        // yes its ugly
+        scoringHeightChooser.addOption("Left L2", Constants.Reefscape.ScoringPositionID.LEFT_L2.ordinal());
+        scoringHeightChooser.addOption("Right L2", Constants.Reefscape.ScoringPositionID.RIGHT_L2.ordinal());
+        scoringHeightChooser.addOption("Left L3", Constants.Reefscape.ScoringPositionID.LEFT_L3.ordinal());
+        scoringHeightChooser.addOption("Right L3", Constants.Reefscape.ScoringPositionID.RIGHT_L3.ordinal());
+        scoringHeightChooser.addOption("Left L4", Constants.Reefscape.ScoringPositionID.LEFT_L4.ordinal());
+        scoringHeightChooser.addOption("Right L4", Constants.Reefscape.ScoringPositionID.RIGHT_L4.ordinal());
+
         SmartDashboard.putData("Auto Chooser", autoChooser);
+        SmartDashboard.putData("Scoring Height Chooser", scoringHeightChooser);
 
         // Configure the button bindings
         configureButtonBindings();
@@ -72,7 +86,6 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        driveToTag.whileTrue(new alignToTagCommand(s_Swerve));
         driveToPoint.whileTrue(Swerve.pathfindCommand());
     }
 
