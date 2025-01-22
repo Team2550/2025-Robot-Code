@@ -82,8 +82,8 @@ public final class Constants {
 
         /* Drivetrain Constants */
         //Will have to wait until we get the robot built
-        public static final double trackWidth = Units.inchesToMeters(24.5); 
-        public static final double wheelBase = Units.inchesToMeters(24.5); 
+        public static final double trackWidth = Units.inchesToMeters(26.75); 
+        public static final double wheelBase = Units.inchesToMeters(22.75); 
         public static final double wheelCircumference = chosenModule.wheelCircumference;
 
         /* Swerve Kinematics 
@@ -92,7 +92,8 @@ public final class Constants {
             new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
             new Translation2d(wheelBase / 2.0, -trackWidth / 2.0),
             new Translation2d(-wheelBase / 2.0, trackWidth / 2.0),
-            new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0));
+            new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0)
+        );
 
         /* Module Gear Ratios */
         public static final double driveGearRatio = chosenModule.driveGearRatio;
