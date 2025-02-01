@@ -34,7 +34,7 @@ public final class Constants {
     
     public static final class ClimbConstants 
     {
-        public static final int climbMotorID = 8;
+        public static final int climbMotorID = 0;
     }
 
     public static final class grabConstants {
@@ -218,9 +218,9 @@ public final class Constants {
             RIGHT_L4
         }
         //TODO: Set to actual port numbers
-        public static final int coralElevatorMotor1ID = -1;
-        public static final int coralElevatorMotor2ID = -1;
-        public static final int coralIntakeMotorID = -1;
+        public static final int coralElevatorMotorID = -1;
         public static final int coralArmMotorID = -1;
+
+        public static final double elevatorGearRatio = 63.5;
     }
 }

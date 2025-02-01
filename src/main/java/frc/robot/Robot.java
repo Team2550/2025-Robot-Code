@@ -58,9 +58,9 @@ public class Robot extends TimedRobot {
   public void disabledPeriodic() {
     SmartDashboard.putString("Does it work?", "Yes!");
 
-    m_robotContainer.getSwerveSubsytem().updateVisionLocalization();
-    m_robotContainer.getSwerveSubsytem().updateOdometry();
-    field.setRobotPose(m_robotContainer.getSwerveSubsytem().getPose());
+    // m_robotContainer.getSwerveSubsytem().updateVisionLocalization();
+    // m_robotContainer.getSwerveSubsytem().updateOdometry();
+    // field.setRobotPose(m_robotContainer.getSwerveSubsytem().getPose());
     SmartDashboard.putData("Disabled Field", field);
   }
 

@@ -42,24 +42,24 @@ public class RobotContainer {
     private final JoystickButton grabButton = new JoystickButton(driver, XboxController.Button.kB.value);
 
     /* Subsystems */
-    private final photonVision s_PhotonVision = new photonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
-    private final Swerve s_Swerve = new Swerve(s_PhotonVision);
+    private final PhotonVision s_PhotonVision = new PhotonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
+    // private final Swerve s_Swerve = new Swerve(s_PhotonVision);
     private final CoralHandlerSubsystem s_CoralHandler = new CoralHandlerSubsystem();
     private final Climber s_Climber = new Climber();
-    private final BallGrabber s_BallGrabber = new BallGrabber();
+    private final BallGrabberSubsystem s_BallGrabber = new BallGrabberSubsystem();
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
         autoChooser = AutoBuilder.buildAutoChooser();
-        s_Swerve.setDefaultCommand(
-            new TeleopSwerve(
-                s_Swerve,
-                () -> -driver.getRawAxis(translationAxis),
-                () -> -driver.getRawAxis(strafeAxis),
-                () -> -driver.getRawAxis(rotationAxis),
-                () -> robotCentric.getAsBoolean()
-            )
-        );
+        // s_Swerve.setDefaultCommand(
+        //     new TeleopSwerve(
+        //         s_Swerve,
+        //         () -> -driver.getRawAxis(translationAxis),
+        //         () -> -driver.getRawAxis(strafeAxis),
+        //         () -> -driver.getRawAxis(rotationAxis),
+        //         () -> robotCentric.getAsBoolean()
+        //     )
+        // );
 
         scoringHeightChooser = new SendableChooser<Integer>();
 
@@ -78,7 +78,7 @@ public class RobotContainer {
         configureButtonBindings();
     }
 
-    public Swerve getSwerveSubsytem() { return s_Swerve; }
+    // public Swerve getSwerveSubsytem() { return s_Swerve; }
 
     /**
      * Use this method to define your button->command mappings. Buttons can be created by
@@ -88,9 +88,10 @@ public class RobotContainer {
      */
     private void configureButtonBindings() {
         /* Driver Buttons */
-        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        climbButton.onTrue(new InstantCommand(() -> s_Climber.Climb()));
-        grabButton.onTrue(BallGrabber.BallGrabberCommand(s_BallGrabber));
+        // zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
+        climbButton.whileTrue(new InstantCommand(() -> s_Climber.Climb()));
+        climbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+        grabButton.onTrue(BallGrabberSubsystem.BallGrabberCommand(s_BallGrabber));
         driveToPoint.whileTrue(Swerve.pathfindCommand());
     }
 

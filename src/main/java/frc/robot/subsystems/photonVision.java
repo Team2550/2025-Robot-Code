@@ -9,14 +9,14 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import frc.robot.Constants;
 
-public class photonVision {
+public class PhotonVision {
     private final PhotonCamera m_cameraOne;
     private final PhotonPoseEstimator m_cameraOneEstimator;
 
     private final PhotonCamera m_cameraTwo;
     private final PhotonPoseEstimator m_cameraTwoEstimator;
 
-    public photonVision(String cameraOneName, String cameraTwoName){
+    public PhotonVision(String cameraOneName, String cameraTwoName){
         m_cameraOne = new PhotonCamera(cameraOneName);
         m_cameraOneEstimator = new PhotonPoseEstimator(Constants.vision.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.vision.localizationCameraOneToRobot);
         m_cameraOneEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);

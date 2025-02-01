@@ -6,12 +6,12 @@ import frc.robot.Constants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
+
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 
@@ -33,10 +33,10 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
-    private photonVision m_photonVision;
+    private PhotonVision m_photonVision;
     private final SwerveDrivePoseEstimator m_PoseEstimator;
 
-    public Swerve(photonVision vision) {
+    public Swerve(PhotonVision vision) {
         m_photonVision = vision;
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
@@ -58,6 +58,7 @@ public class Swerve extends SubsystemBase {
                     VecBuilder.fill(0.05, 0.05, Math.toRadians(5)),
                     VecBuilder.fill(0.5, 0.5, Math.toRadians(30)));
 
+        //TODO: Replace with PhotonVision code
         try{
             RobotConfig config = RobotConfig.fromGUISettings();
             AutoBuilder.configure(
@@ -149,19 +150,6 @@ public class Swerve extends SubsystemBase {
         return positions;
     }
 
-    public boolean isInZone() {
-        Pose2d estimatedPose = getPose();
-        if(
-            estimatedPose.getX() > Constants.RegistrationSafety.safetyZoneMinX && 
-            estimatedPose.getX() < Constants.RegistrationSafety.safetyZoneMaxX &&
-            estimatedPose.getY() > Constants.RegistrationSafety.safetyZoneMinY &&
-            estimatedPose.getY() < Constants.RegistrationSafety.safetyZoneMaxY  ) {
-                return true;
-            } else {
-                return false;
-            } 
-    }
-
     /*Setter Funtions */
     public void setPose(Pose2d pose) { m_PoseEstimator.resetPosition(getGyroYaw(), getModulePositions(), pose); }
     public void setHeading(Rotation2d heading) {
@@ -208,9 +196,11 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    //TODO: Replace with PhotonVision code
     public static Command pathfindCommand(){
         Pose2d targetPose = new Pose2d(1.90, 7.37, Rotation2d.fromDegrees(-90));
         targetPose = new Pose2d(1.50, 5.4, Rotation2d.fromDegrees(180));
+        
         
         PathConstraints constraints = new PathConstraints(
         3.0, 4.0,

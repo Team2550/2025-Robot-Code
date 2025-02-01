@@ -15,7 +15,7 @@ public class Climber extends SubsystemBase
 {
     private TalonFX m_climbMotor;
     DigitalInput limitSwitch; 
-    double climbSpeed = 1;
+    double climbSpeed = 0.1;
     double timeOfClimb = 1;
     boolean isClimbing;
     boolean active;
