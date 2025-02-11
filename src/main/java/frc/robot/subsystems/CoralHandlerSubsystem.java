@@ -1,25 +1,16 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Degrees;
-
-import java.lang.reflect.Array;
-import java.net.SocketPermission;
-import java.util.List;
-
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-
-import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.units.AngleUnit;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.math.Conversions;
-import frc.robot.Constants;
+import frc.robot.Robot;
+import frc.robot.Constants.CoralHandlerConstants;
 
 public class CoralHandlerSubsystem extends SubsystemBase {
     
@@ -30,21 +21,36 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     private NetworkTable mScoringNetworkTable;
     private NetworkTableEntry mSelectedScoringHeightEntry;
     private NetworkTableEntry mSelectedScoringSideEntry;
+    private final PositionVoltage mElevatorRequest;
+    private final PositionVoltage mArmRequest;
+    
+
+    private static final double multiplier = 7.07;
+        
 
     public CoralHandlerSubsystem() {
 
-        // CANcoder eventually probably idk their plan
-
-        Slot0Configs elevatorMotorConfig = new Slot0Configs();
-        elevatorMotorConfig.kP = 2.4;
-        elevatorMotorConfig.kI = 0;
-        elevatorMotorConfig.kD = 0.1;
-
-        mElevatorMotor = new TalonFX(Constants.Reefscape.coralElevatorMotorID);
-        mElevatorMotor.getConfigurator().apply(elevatorMotorConfig);
+        //Set Up Elevator Motor
+        mElevatorMotor = new TalonFX(9);
+        mElevatorMotor.getConfigurator().apply(Robot.ctreConfigs.elevatorMotorFXConfig);
+        mElevatorMotor.getConfigurator().apply(Robot.ctreConfigs.elevatorMotorPIDConfig);
         
-        mArmMotor = new TalonFX(Constants.Reefscape.coralArmMotorID);
-        mArmMotor.getConfigurator().apply(new TalonFXConfiguration());
+        mElevatorMotor.setPosition(0);
+        mElevatorRequest = new PositionVoltage(0).withSlot(0);
+
+
+
+        //Set Up Arm Motor
+        mArmMotor = new TalonFX(10);
+        mArmMotor.getConfigurator().apply(Robot.ctreConfigs.armMotorFXConfig);
+        mArmMotor.getConfigurator().apply(Robot.ctreConfigs.armMotorPIDConfig);
+        
+        mArmMotor.setPosition(-0.25);
+        //Right is 0
+        //Up is 90
+        //Left is 180
+        //Down is 270
+        mArmRequest = new PositionVoltage(90).withSlot(0);
 
         mNetworkTable = NetworkTableInstance.getDefault();
         mScoringNetworkTable = mNetworkTable.getTable("automaticScoringPosition");
@@ -52,54 +58,74 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mSelectedScoringSideEntry = mScoringNetworkTable.getEntry("scoringSide");
     }
 
-    public Command autoPickup() {
-        return null;
-    }
-
-    public Command autoExpel() {
-        return null;
-    }
-
     public Command intake() {
-        Command selectedHeightCommand = null;
+        return null;
+    }
+
+    public Command expel() {
+        Runnable selectedHeightCommand = () -> {};
         int scoringPosition = (int)mSelectedScoringHeightEntry.getInteger(-1);
         switch (scoringPosition) {
             case 0:
             case 1:
-                selectedHeightCommand = changeToL2Pose();
+                selectedHeightCommand = () -> moveElevatorTo(CoralHandlerConstants.L2Pose);
                 break;
             case 2:
             case 3:
-                selectedHeightCommand = changeToL3Pose();
+                selectedHeightCommand = () -> moveElevatorTo(CoralHandlerConstants.L3Pose);
                 break;
             case 4:
             case 5:
-                selectedHeightCommand = changeToL4Pose();
+                selectedHeightCommand = () -> moveElevatorTo(CoralHandlerConstants.L4Pose);
                 break;
             default:
                 break;
         }
         //TODO: Check if doing automatic scoring and obtain scoring position if so
-        return selectedHeightCommand.alongWith(null);
+        return this.run(selectedHeightCommand);
     }
-    public Command expel() { return null; }
+
+    public Command zero() { return null; }
 
     //TODO: Probably come up with better naming to not confuse with the Swerve system and Pose2D's
-    public Command changeToPickupPose() {
-        return null;
+    public void changeToIntakePose() {}
+
+    // Sets the height of the elevator from the bottom in meters
+    public Command moveElevatorTo(double height) {
+        if (0 <= height && height <= 0.762) {
+            return this.run(() -> {
+                mElevatorMotor.setControl(mElevatorRequest.withPosition(Conversions.metersToRotations(height, 0.13) * multiplier));
+            });
+        } else {
+            return null;
+        }
     }
-    // 50:1 24:1
-    public Command changeToL2Pose() {
-        mElevatorMotor.setPosition(Conversions.metersToRotations(0.25, 0.05));
-        //TODO: Testing Required
-        double gearRatio = 62.5;
-        mArmMotor.setPosition(0.25 * gearRatio);
-        return null;
+
+    // Returns the elevator to the bottom at its predefined resting position
+    public Command rest() {
+        return this.run(() -> {
+            mElevatorMotor.setControl(mElevatorRequest.withPosition(Conversions.metersToRotations(CoralHandlerConstants.restPose, 0.13) * multiplier));
+        });
     }
-    public Command changeToL3Pose() {
-        return null;
+
+    // Stops the elevator motor at its current position
+    public void stopElevatorMotor() {
+        mElevatorMotor.set(0);
     }
-    public Command changeToL4Pose() {
-        return null;
+
+    // Stops the arm at its current position
+    public void stopArmMotor(){
+        mArmMotor.set(0);
+    }
+
+    public Command changeArmPose(Rotation2d pose) {
+        // mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
+        if (-180 <= pose.getDegrees() && pose.getDegrees() <= 180) {
+            return this.run(() -> {
+                mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
+            });
+        } else {
+            return null;
+        }
     }
 }

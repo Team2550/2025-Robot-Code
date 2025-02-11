@@ -191,6 +191,16 @@ public final class Constants {
         }
     }
 
+    public static final class CoralHandlerConstants {
+        public static final double restPose = 0;
+        public static final double L2Pose = 0.3;
+        public static final double L3Pose = 0.762;
+        public static final double L4Pose = 0;  // Set this
+    
+        public static final Rotation2d armRestPose = new Rotation2d(-90*Math.PI/180);
+        public static final Rotation2d R2Pose = new Rotation2d(-45*Math.PI/180);
+      }
+
     //Will have to wait until we build the robot
     public static final class AutoConstants { //TODO: The below constants are used in the example auto, and must be tuned to specific robot
         public static final double kMaxSpeedMetersPerSecond = 3;

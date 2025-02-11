@@ -44,7 +44,7 @@ public class PhotonVision {
     }
 
     @SuppressWarnings("unused")
-    public double getMovement(){
+    public double test_getYawDeltaCorrection(){
         var results = m_cameraOne.getAllUnreadResults();
         double targetYaw = 0;
         boolean targetVisible = false;
