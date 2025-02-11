@@ -89,7 +89,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                     currentState = State.Rest;
                 break;
             default:
-                System.err.println("ERROR: UNRECOGNIZED STATE");
                 break;
         }
     }
