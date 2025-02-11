@@ -25,6 +25,76 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     private NetworkTableEntry mSelectedScoringHeightEntry;
     private NetworkTableEntry mSelectedScoringSideEntry;
 
+    State currentState;
+    enum State 
+    {
+        Rest,
+        CoralPickup1,
+        CoralPickup2,
+        MoveHopper,
+        L1,
+        L2,
+        L3,
+        L4
+    }
+
+    public State GetCurrentState()
+    {
+        return currentState;
+    }
+
+    public void HandleEvent(State event)
+    {
+        switch (currentState) {
+            case Rest:
+                if(event == State.CoralPickup1)
+                    currentState = State.CoralPickup1;
+                if(event == State.MoveHopper)
+                    currentState = State.MoveHopper;
+                if(event == State.L3)
+                    currentState = State.L3;
+                if(event == State.L4)
+                    currentState = State.L4;
+                break;
+            case CoralPickup1:
+                if(event == State.CoralPickup2)
+                    currentState = State.CoralPickup2;
+                if (event == State.Rest)
+                    currentState = State.Rest;
+                break;
+            case CoralPickup2:
+                if(event == State.CoralPickup1)
+                    currentState = State.CoralPickup1;
+                break;
+            case MoveHopper:
+                if(event == State.L1)
+                    currentState = State.L1;
+                if(event == State.L2)
+                    currentState = State.L2;
+                    break;
+            case L1:
+                if(event == State.MoveHopper)
+                    currentState = State.MoveHopper;
+                break;
+            case L2:
+                if(event == State.MoveHopper)
+                    currentState = State.MoveHopper;
+                break;
+            case L3:
+                if(event == State.Rest)
+                    currentState = State.Rest;
+                break;
+            case L4:
+                if(event == State.Rest)
+                    currentState = State.Rest;
+                break;
+            default:
+                System.err.println("ERROR: UNRECOGNIZED STATE");
+                break;
+        }
+    }
+
+
     public CoralHandlerSubsystem() {
 
         // CANcoder eventually probably idk their plan
