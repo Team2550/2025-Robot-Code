@@ -6,16 +6,18 @@ import frc.robot.Constants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
+
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -26,6 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Swerve extends SubsystemBase {
@@ -33,10 +36,15 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
-    private photonVision m_photonVision;
+    private PIDController xPid = new PIDController(0.5,0,0);
+    private PIDController yPid = new PIDController(0.5,0,0);
+    private PIDController rPid = new PIDController(0.5,0,0);
+
+
+    private PhotonVision m_photonVision;
     private final SwerveDrivePoseEstimator m_PoseEstimator;
 
-    public Swerve(photonVision vision) {
+    public Swerve(PhotonVision vision) {
         m_photonVision = vision;
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
@@ -58,6 +66,7 @@ public class Swerve extends SubsystemBase {
                     VecBuilder.fill(0.05, 0.05, Math.toRadians(5)),
                     VecBuilder.fill(0.5, 0.5, Math.toRadians(30)));
 
+        //TODO: Replace with PhotonVision code
         try{
             RobotConfig config = RobotConfig.fromGUISettings();
             AutoBuilder.configure(
@@ -149,19 +158,6 @@ public class Swerve extends SubsystemBase {
         return positions;
     }
 
-    public boolean isInZone() {
-        Pose2d estimatedPose = getPose();
-        if(
-            estimatedPose.getX() > Constants.RegistrationSafety.safetyZoneMinX && 
-            estimatedPose.getX() < Constants.RegistrationSafety.safetyZoneMaxX &&
-            estimatedPose.getY() > Constants.RegistrationSafety.safetyZoneMinY &&
-            estimatedPose.getY() < Constants.RegistrationSafety.safetyZoneMaxY  ) {
-                return true;
-            } else {
-                return false;
-            } 
-    }
-
     /*Setter Funtions */
     public void setPose(Pose2d pose) { m_PoseEstimator.resetPosition(getGyroYaw(), getModulePositions(), pose); }
     public void setHeading(Rotation2d heading) {
@@ -189,17 +185,16 @@ public class Swerve extends SubsystemBase {
     public void updateOdometry() {
         m_PoseEstimator.update(getGyroYaw(), getModulePositions());
     }
-    public void updateLocalization() {
+    public void updateFieldView() {
         m_Field.setRobotPose(m_PoseEstimator.getEstimatedPosition());
         SmartDashboard.putData("Field", m_Field);
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("PhotonVision Data", m_photonVision.getMovement());
         updateVisionLocalization();
         m_PoseEstimator.update(getGyroYaw(), getModulePositions());
-        updateLocalization();
+        updateFieldView();
 
         for(SwerveModule mod : mSwerveMods) {
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " CANcoder", mod.getCANcoder().getDegrees());
@@ -208,22 +203,38 @@ public class Swerve extends SubsystemBase {
         }
     }
 
-    public static Command pathfindCommand(){
-        Pose2d targetPose = new Pose2d(1.90, 7.37, Rotation2d.fromDegrees(-90));
-        targetPose = new Pose2d(1.50, 5.4, Rotation2d.fromDegrees(180));
+    private boolean isAtPoseSetpoint() {
+        return xPid.atSetpoint() && yPid.atSetpoint() && rPid.atSetpoint();
+    }
+
+    //TODO: Replace with PhotonVision code
+    public Command pathfindCommand(Pose2d target){
         
         PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
+            3.0, 4.0,
+            Units.degreesToRadians(540), Units.degreesToRadians(720)
+        );
         
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
         Command pathfindingCommand = AutoBuilder.pathfindToPose(
-                targetPose,
+                target,
                 constraints,
                 0.0 // Goal end velocity in meters/sec
         );
 
-        return pathfindingCommand;
+        //TODO: UNTESTED, POTENTIALLY DANGEROUS
+        return pathfindingCommand.andThen(
+            Commands.parallel(
+                Commands.run(() -> {
+                    Pose2d currentEstimatedPose = m_PoseEstimator.getEstimatedPosition();
+                    double xErr = xPid.calculate(currentEstimatedPose.getX(), target.getX());
+                    double yErr = yPid.calculate(currentEstimatedPose.getY(), target.getY());
+                    double rErr = rPid.calculate(currentEstimatedPose.getRotation().getRadians(), target.getRotation().getRadians());
+                    drive(new Translation2d(xErr, yErr), rErr, true, false);
+                }),
+                Commands.waitUntil(this::isAtPoseSetpoint)
+            )
+        );
     }
 
     /*Vision Functions */

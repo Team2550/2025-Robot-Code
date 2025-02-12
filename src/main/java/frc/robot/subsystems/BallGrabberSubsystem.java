@@ -12,14 +12,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
-public class BallGrabber extends SubsystemBase {
+public class BallGrabberSubsystem extends SubsystemBase {
     /** Creates a new BallGrabber. */
     
     private TalonFX grabMotor;
     private double grabSpeed;
     private boolean grab;
 
-    public BallGrabber() {
+    public BallGrabberSubsystem() {
         this.grabMotor = new TalonFX(grabConstants.grabMotorID);
         this.grabSpeed = grabConstants.grabSpeed;
         this.grab = true;
@@ -38,7 +38,7 @@ public class BallGrabber extends SubsystemBase {
         grab = !grab;
     }
 
-    public static Command BallGrabberCommand(BallGrabber ballGrabber) {
+    public static Command BallGrabberCommand(BallGrabberSubsystem ballGrabber) {
         return Commands.runEnd(() -> ballGrabber.GrabReleaseBall(), () -> ballGrabber.StopGrabber());
     }
 

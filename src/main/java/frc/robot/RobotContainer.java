@@ -39,14 +39,16 @@ public class RobotContainer {
     private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     private final JoystickButton driveToPoint = new JoystickButton(driver, XboxController.Button.kX.value);
     private final JoystickButton climbButton = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton unClimbButton = new JoystickButton(driver, XboxController.Button.kB.value);
+    
     private final JoystickButton grabButton = new JoystickButton(driver, XboxController.Button.kB.value);
 
     /* Subsystems */
-    private final photonVision s_PhotonVision = new photonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
+    private final PhotonVision s_PhotonVision = new PhotonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
     private final Swerve s_Swerve = new Swerve(s_PhotonVision);
     private final CoralHandlerSubsystem s_CoralHandler = new CoralHandlerSubsystem();
     private final Climber s_Climber = new Climber();
-    private final BallGrabber s_BallGrabber = new BallGrabber();
+    private final BallGrabberSubsystem s_BallGrabber = new BallGrabberSubsystem();
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -71,7 +73,7 @@ public class RobotContainer {
         scoringHeightChooser.addOption("Left L4", Constants.Reefscape.ScoringPositionID.LEFT_L4.ordinal());
         scoringHeightChooser.addOption("Right L4", Constants.Reefscape.ScoringPositionID.RIGHT_L4.ordinal());
 
-        SmartDashboard.putData("Auto Chooser", autoChooser);
+        //SmartDashboard.putData("Auto Chooser", autoChooser);
         SmartDashboard.putData("Scoring Height Chooser", scoringHeightChooser);
 
         // Configure the button bindings
@@ -88,10 +90,14 @@ public class RobotContainer {
      */
     private void configureButtonBindings() {
         /* Driver Buttons */
-        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        climbButton.onTrue(new InstantCommand(() -> s_Climber.Climb()));
-        grabButton.onTrue(BallGrabber.BallGrabberCommand(s_BallGrabber));
-        driveToPoint.whileTrue(Swerve.pathfindCommand());
+        // zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
+        climbButton.whileTrue(s_Climber.Climb(false));
+        climbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+        unClimbButton.whileTrue(s_Climber.Climb(true));
+        unClimbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+
+        //grabButton.onTrue(BallGrabberSubsystem.BallGrabberCommand(s_BallGrabber));
+        //driveToPoint.whileTrue(Swerve.pathfindCommand());
     }
 
     /**
@@ -101,8 +107,8 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        //return new PathPlannerAuto("New Auto");
+        // return new PathPlannerAuto("New Auto");
         return autoChooser.getSelected();
-
+        // return null;
     }
 }
