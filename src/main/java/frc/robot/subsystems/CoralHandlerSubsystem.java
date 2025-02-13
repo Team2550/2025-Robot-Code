@@ -1,5 +1,11 @@
 package frc.robot.subsystems;
 
+import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -26,76 +32,118 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     
 
     private static final double multiplier = 7.07;
-        
 
-    State currentState;
-    enum State 
-    {
-        Rest,
-        CoralPickup1,
-        CoralPickup2,
-        MoveHopper,
-        L1,
-        L2,
-        L3,
-        L4
-    }
+    
+    //TODO: DO AWAY WITH OLD STATE MACHINE AND USE "THE MONSTROSITY"
+    class CoralHandlerStateMachine {
+        enum State
+        {
+            Rest(-1,-1, false),
+            CoralPickup1(-1,-1, false),
+            CoralPickup2(-1,-1, true),
+            L1(-1,-1, false),
+            L2(-1,-1, false),
+            L3(-1,-1, true),
+            L4(-1,-1, true);
 
-    public State GetCurrentState()
-    {
-        return currentState;
-    }
+            private double elevatorHeightMeters;
+            private double armAngleDegrees;
+            private boolean isHopperIn;
 
-    public void HandleEvent(State event)
-    {
-        switch (currentState) {
-            case Rest:
-                if(event == State.CoralPickup1)
-                    currentState = State.CoralPickup1;
-                if(event == State.MoveHopper)
-                    currentState = State.MoveHopper;
-                if(event == State.L3)
-                    currentState = State.L3;
-                if(event == State.L4)
-                    currentState = State.L4;
-                break;
-            case CoralPickup1:
-                if(event == State.CoralPickup2)
-                    currentState = State.CoralPickup2;
-                if (event == State.Rest)
-                    currentState = State.Rest;
-                break;
-            case CoralPickup2:
-                if(event == State.CoralPickup1)
-                    currentState = State.CoralPickup1;
-                break;
-            case MoveHopper:
-                if(event == State.L1)
-                    currentState = State.L1;
-                if(event == State.L2)
-                    currentState = State.L2;
-                    break;
-            case L1:
-                if(event == State.MoveHopper)
-                    currentState = State.MoveHopper;
-                break;
-            case L2:
-                if(event == State.MoveHopper)
-                    currentState = State.MoveHopper;
-                break;
-            case L3:
-                if(event == State.Rest)
-                    currentState = State.Rest;
-                break;
-            case L4:
-                if(event == State.Rest)
-                    currentState = State.Rest;
-                break;
-            default:
-                break;
+            State(double elevatorHeightMeters, double armAngleDegrees, boolean isHopperIn) {
+                this.elevatorHeightMeters = elevatorHeightMeters;
+                this.armAngleDegrees = armAngleDegrees;
+                this.isHopperIn = isHopperIn;
+            }
+
+            double getElevatorHeightMeters() {
+                return this.elevatorHeightMeters;
+            }
+
+            double getArmAngleDegrees() {
+                return this.armAngleDegrees;
+            }
+
+        }
+        // "THE MONSTROSITY"
+        enum StateTransitionPath {
+            RestToL1(State.Rest, State.L1),
+            RestToL2(State.Rest, State.L2),
+            RestToL3(State.Rest, State.L3),
+            RestToL4(State.Rest, State.L4),
+            RestToCoralPickup1(State.Rest, State.CoralPickup1),
+            RestToCoralPickup2(State.Rest, State.CoralPickup2, State.CoralPickup1),
+
+            L1ToRest(State.L1, State.Rest),
+            L1ToL2(State.L1, State.L2),
+            L1ToL3(State.L1, State.L3, State.Rest),
+            L1ToL4(State.L1, State.L4, State.Rest),
+            L1ToCoralPickup1(State.L1, State.CoralPickup1, State.Rest),
+            L1ToCoralPickup2(State.L1, State.CoralPickup2, State.Rest, State.CoralPickup1),
+
+            L2ToRest(State.L2, State.Rest),
+            L2ToL1(State.L2, State.L1),
+            L2ToL3(State.L2, State.L3, State.Rest),
+            L2ToL4(State.L2, State.L4, State.Rest),
+            L2ToCoralPickup1(State.L2, State.CoralPickup1, State.Rest),
+            L2ToCoralPickup2(State.L2, State.CoralPickup2, State.Rest, State.CoralPickup1),
+
+            L3ToRest(State.L3, State.Rest),
+            L3ToL1(State.L3, State.L1, State.Rest),
+            L3ToL2(State.L3, State.L2, State.Rest),
+            L3ToL4(State.L3, State.L4),
+            L3ToCoralPickup1(State.L3, State.CoralPickup1, State.Rest),
+            L3ToCoralPickup2(State.L3, State.CoralPickup2, State.Rest, State.CoralPickup1),
+
+            L4ToRest(State.L4, State.Rest),
+            L4ToL1(State.L4, State.L1, State.Rest),
+            L4ToL2(State.L4, State.L2, State.Rest),
+            L4ToL3(State.L4, State.L3),
+            L4ToCoralPickup1(State.L4, State.CoralPickup1, State.Rest),
+            L4ToCoralPickup2(State.L4, State.CoralPickup2, State.Rest, State.CoralPickup1),
+
+            CoralPickup1ToRest(State.CoralPickup1, State.Rest),
+            CoralPickup1ToL1(State.CoralPickup1, State.L1, State.Rest),
+            CoralPickup1ToL2(State.CoralPickup1, State.L2, State.Rest),
+            CoralPickup1ToL3(State.CoralPickup1, State.L3, State.Rest),
+            CoralPickup1ToL4(State.CoralPickup1, State.L4, State.Rest),
+            CoralPickup1ToCoralPickup2(State.CoralPickup1, State.CoralPickup2),
+
+            CoralPickup2ToRest(State.CoralPickup2, State.Rest, State.CoralPickup1),
+            CoralPickup2ToL1(State.CoralPickup2, State.L1, State.CoralPickup1, State.Rest),
+            CoralPickup2ToL2(State.CoralPickup2, State.L2, State.CoralPickup1, State.Rest),
+            CoralPickup2ToL3(State.CoralPickup2, State.L3, State.CoralPickup1, State.Rest),
+            CoralPickup2ToL4(State.CoralPickup2, State.L4, State.CoralPickup1, State.Rest),
+            CoralPickup2ToCoralPickup1(State.CoralPickup2, State.CoralPickup1);
+
+            StateTransitionPath(State initial, State endpoint, State... intermediary) {
+
+            }
+        }
+
+        State currentState = State.Rest;
+        Map<State, State[]> allowedStateTransitions = new HashMap<State, State[]>() {{
+            put(State.Rest, new State[]{State.L1, State.L2, State.L3, State.L4, State.CoralPickup1});
+            put(State.CoralPickup1, new State[]{State.Rest, State.CoralPickup2});
+            put(State.CoralPickup2, new State[]{State.CoralPickup1});
+            put(State.L1, new State[]{State.L2, State.Rest});
+            put(State.L2, new State[]{State.L1, State.Rest});
+            put(State.L3, new State[]{State.L4, State.Rest});
+            put(State.L4, new State[]{State.L3, State.Rest});
+        }};
+
+        CoralHandlerStateMachine() {}
+
+        boolean attemptStateTransition(State newState) {
+            if (Arrays.asList(allowedStateTransitions.get(currentState)).contains(newState)) {
+                currentState = newState;
+                return true;
+            }
+            return false;
         }
     }
 
+    private CoralHandlerStateMachine coralHandlerStateMachine;
 
     public CoralHandlerSubsystem() {
 
@@ -106,8 +154,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         
         mElevatorMotor.setPosition(0);
         mElevatorRequest = new PositionVoltage(0).withSlot(0);
-
-
 
         //Set Up Arm Motor
         mArmMotor = new TalonFX(10);
@@ -134,22 +180,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     public Command expel() {
         Runnable selectedHeightCommand = () -> {};
         int scoringPosition = (int)mSelectedScoringHeightEntry.getInteger(-1);
-        switch (scoringPosition) {
-            case 0:
-            case 1:
-                selectedHeightCommand = () -> moveElevatorTo(CoralHandlerConstants.L2Pose);
-                break;
-            case 2:
-            case 3:
-                selectedHeightCommand = () -> moveElevatorTo(CoralHandlerConstants.L3Pose);
-                break;
-            case 4:
-            case 5:
-                selectedHeightCommand = () -> moveElevatorTo(CoralHandlerConstants.L4Pose);
-                break;
-            default:
-                break;
-        }
+        
+
+
         //TODO: Check if doing automatic scoring and obtain scoring position if so
         return this.run(selectedHeightCommand);
     }
