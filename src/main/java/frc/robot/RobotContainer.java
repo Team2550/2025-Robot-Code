@@ -15,42 +15,55 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
-
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and button mappings) should be declared here.
- */
 public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
     private final SendableChooser<Integer> scoringHeightChooser;
 
     /* Controllers */
     private final Joystick driver = new Joystick(0);
+    private final Joystick operator = new Joystick(1);
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
     private final int rotationAxis = XboxController.Axis.kRightX.value;
 
+    private final int autoDriveAxis = XboxController.Axis.kLeftTrigger.value;
+    private final int operatorActionAxis = XboxController.Axis.kRightTrigger.value;
+
+    private final int coralSetSideLeftAxis = XboxController.Axis.kLeftTrigger.value;
+    private final int coralSetSideRightAxis = XboxController.Axis.kRightTrigger.value;
+
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-    private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
-    private final JoystickButton driveToPoint = new JoystickButton(driver, XboxController.Button.kX.value);
-    private final JoystickButton climbButton = new JoystickButton(driver, XboxController.Button.kA.value);
-    private final JoystickButton unClimbButton = new JoystickButton(driver, XboxController.Button.kB.value);
-    
-    private final JoystickButton grabButton = new JoystickButton(driver, XboxController.Button.kB.value);
+    // private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    // private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
-    /* Subsystems */
-    private final PhotonVision s_PhotonVision = new PhotonVision(Constants.vision.localizationCameraOneName, Constants.vision.localizationCameraTwoName);
-    private final Swerve s_Swerve = new Swerve(s_PhotonVision);
+    // Operator Buttons
+    private final JoystickButton ballIntakeButton =     new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton ballExpelButton =      new JoystickButton(operator, XboxController.Button.kRightBumper.value);
+    private final JoystickButton climberLatchButton =   new JoystickButton(operator, XboxController.Button.kBack.value);
+    private final JoystickButton climberUnLatchButton = new JoystickButton(operator, XboxController.Button.kStart.value);
+
+    private final JoystickButton l2Button = new JoystickButton(operator, XboxController.Button.kA.value);
+    private final JoystickButton l3Button = new JoystickButton(operator, XboxController.Button.kX.value);
+    private final JoystickButton l4Button = new JoystickButton(operator, XboxController.Button.kY.value);
+
+    // Driver Buttons
+    private final JoystickButton climbButton =     new JoystickButton(driver, XboxController.Button.kBack.value);
+    private final JoystickButton unClimbButton =   new JoystickButton(driver, XboxController.Button.kStart.value);
+    private final JoystickButton dropCoralButton = new JoystickButton(driver, XboxController.Button.kB.value);
+
+    // Subsystems
     private final CoralHandlerSubsystem s_CoralHandler = new CoralHandlerSubsystem();
-    private final Climber s_Climber = new Climber();
-    private final BallGrabberSubsystem s_BallGrabber = new BallGrabberSubsystem();
+    private final BallGrabberSubsystem s_BallGrabber =   new BallGrabberSubsystem();
+    private final PhotonVision s_PhotonVision =          new PhotonVision();
+    private final Climber s_Climber =                    new Climber();
+    private final Swerve s_Swerve =                      new Swerve(s_PhotonVision);
 
-    /** The container for the robot. Contains subsystems, OI devices, and commands. */
+    private CoralHandlerSubsystem.CoralHandlerStateMachine.State operatorSelectedCoralExpulsionState;
+    private int operatorReefSideDPadSelectionPOV;
+
+    /* The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
         autoChooser = AutoBuilder.buildAutoChooser();
         s_Swerve.setDefaultCommand(
@@ -59,7 +72,19 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(translationAxis),
                 () -> -driver.getRawAxis(strafeAxis),
                 () -> -driver.getRawAxis(rotationAxis),
-                () -> robotCentric.getAsBoolean()
+                () -> driver.getRawAxis(autoDriveAxis),
+                () -> false // robot centric control
+            )
+        );
+
+        s_CoralHandler.setDefaultCommand(
+            new TeleopCoral(
+                s_CoralHandler,
+                () -> driver.getRawAxis(operatorActionAxis),
+                () -> operator.getRawButton(XboxController.Button.kA.value),
+                () -> operator.getRawButton(XboxController.Button.kX.value),
+                () -> operator.getRawButton(XboxController.Button.kY.value),
+                () -> operator.getPOV()
             )
         );
 
@@ -80,31 +105,28 @@ public class RobotContainer {
         configureButtonBindings();
     }
 
-    public Swerve getSwerveSubsytem() { return s_Swerve; }
-
-    /**
-     * Use this method to define your button->command mappings. Buttons can be created by
-     * instantiating a {@link GenericHID} or one of its subclasses ({@link
-     * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-     * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-     */
     private void configureButtonBindings() {
         /* Driver Buttons */
         // zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        climbButton.whileTrue(s_Climber.Climb(false));
-        climbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
-        unClimbButton.whileTrue(s_Climber.Climb(true));
-        unClimbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+        // climbButton.whileTrue(s_Climber.Climb(false));
+        // climbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+        // unClimbButton.whileTrue(s_Climber.Climb(true));
+        // unClimbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
 
         //grabButton.onTrue(BallGrabberSubsystem.BallGrabberCommand(s_BallGrabber));
         //driveToPoint.whileTrue(Swerve.pathfindCommand());
+        ballIntakeButton.whileTrue(null);
+        ballExpelButton.whileTrue(null);
+        climberLatchButton.onTrue(null);
+        climberUnLatchButton.onTrue(null);
+    
+        climbButton.onTrue(null);
+        unClimbButton.onTrue(null);
+        dropCoralButton.onTrue(null);
     }
 
-    /**
-     * Use this to pass the autonomous command to the main {@link Robot} class.
-     *
-     * @return the command to run in autonomous
-     */
+    public Swerve getSwerveSubsytem() { return s_Swerve; }
+
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
         // return new PathPlannerAuto("New Auto");
