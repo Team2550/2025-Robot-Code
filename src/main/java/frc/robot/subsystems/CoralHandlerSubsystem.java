@@ -186,7 +186,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         coralHandlerStateMachine = new CoralHandlerStateMachine(this);
 
         //Set Up Elevator Motor
-        mElevatorMotor = new TalonFX(9);
+        mElevatorMotor = new TalonFX(26);
         mElevatorMotor.getConfigurator().apply(Robot.ctreConfigs.elevatorMotorFXConfig);
         mElevatorMotor.getConfigurator().apply(Robot.ctreConfigs.elevatorMotorPIDConfig);
         
@@ -194,7 +194,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mElevatorRequest = new PositionVoltage(0).withSlot(0);
 
         //Set Up Arm Motor
-        mArmMotor = new TalonFX(10);
+        mArmMotor = new TalonFX(24);
         mArmMotor.getConfigurator().apply(Robot.ctreConfigs.armMotorFXConfig);
         mArmMotor.getConfigurator().apply(Robot.ctreConfigs.armMotorPIDConfig);
         
@@ -205,8 +205,8 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         //Down is 270
         mArmRequest = new PositionVoltage(90).withSlot(0);
 
-        mHopperOpenSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, -1);
-        mHopperCloseSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, -1);
+        mHopperOpenSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, 2);
+        mHopperCloseSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, 3);
 
         mNetworkTable = NetworkTableInstance.getDefault();
         mScoringNetworkTable = mNetworkTable.getTable("automaticScoringPosition");

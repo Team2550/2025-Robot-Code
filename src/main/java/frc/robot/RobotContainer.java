@@ -115,14 +115,14 @@ public class RobotContainer {
 
         //grabButton.onTrue(BallGrabberSubsystem.BallGrabberCommand(s_BallGrabber));
         //driveToPoint.whileTrue(Swerve.pathfindCommand());
-        ballIntakeButton.whileTrue(null);
-        ballExpelButton.whileTrue(null);
-        climberLatchButton.onTrue(null);
-        climberUnLatchButton.onTrue(null);
+        // ballIntakeButton.whileTrue(null);
+        // ballExpelButton.whileTrue(null);
+        climberLatchButton.onTrue(s_Climber.ControlPneumatics(true));
+        climberUnLatchButton.onTrue(s_Climber.ControlPneumatics(false));
     
-        climbButton.onTrue(null);
-        unClimbButton.onTrue(null);
-        dropCoralButton.onTrue(null);
+        climbButton.onTrue(s_Climber.RunMotor(false));
+        unClimbButton.onTrue(s_Climber.RunMotor(true));
+        // dropCoralButton.onTrue(null);
     }
 
     public Swerve getSwerveSubsytem() { return s_Swerve; }

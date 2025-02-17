@@ -7,20 +7,23 @@ package frc.robot.subsystems;
 import frc.robot.Constants.grabConstants;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 public class BallGrabberSubsystem extends SubsystemBase {
     /** Creates a new BallGrabber. */
     
-    private TalonFX grabMotor;
+    private SparkMax grabMotor;
     private double grabSpeed;
     private boolean grab;
 
     public BallGrabberSubsystem() {
-        this.grabMotor = new TalonFX(grabConstants.grabMotorID);
+        this.grabMotor = new SparkMax(grabConstants.grabMotorID, MotorType.kBrushed);
         this.grabSpeed = grabConstants.grabSpeed;
         this.grab = true;
     }

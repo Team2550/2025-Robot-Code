@@ -21,6 +21,7 @@ public class TeleopCoral extends Command {
 
     public TeleopCoral(CoralHandlerSubsystem coralHandlerSubsystem, DoubleSupplier operatorActionAxisSup, BooleanSupplier l2ButtonPressed, BooleanSupplier l3ButtonPressed, BooleanSupplier l4ButtonPressed, IntSupplier operatorDPadPOV) {
         this.s_CoralHandler = coralHandlerSubsystem;
+        addRequirements(s_CoralHandler);
         this.operatorActionAxisSup = operatorActionAxisSup;
         this.l2ButtonPressed = l2ButtonPressed;
         this.l3ButtonPressed = l3ButtonPressed;
