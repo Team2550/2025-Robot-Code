@@ -3,8 +3,10 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,6 +18,8 @@ import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
 public class RobotContainer {
+    private Compressor mCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
+
     private final SendableChooser<Command> autoChooser;
     private final SendableChooser<Integer> scoringHeightChooser;
 
@@ -65,6 +69,8 @@ public class RobotContainer {
 
     /* The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
+        mCompressor.enableDigital(); //We may want to use analog or hybrid
+
         autoChooser = AutoBuilder.buildAutoChooser();
         s_Swerve.setDefaultCommand(
             new TeleopSwerve(
