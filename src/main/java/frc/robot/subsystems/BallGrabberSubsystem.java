@@ -23,7 +23,7 @@ public class BallGrabberSubsystem extends SubsystemBase {
     public BallGrabberSubsystem() {
         grabMotor = new SparkMax(grabConstants.grabMotorID, MotorType.kBrushed);
 
-        mSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, -1, -1);
+        mSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 6, 7);
         mSolenoid.set(DoubleSolenoid.Value.kForward);
     }
 
