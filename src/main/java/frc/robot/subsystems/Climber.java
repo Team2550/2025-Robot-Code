@@ -5,32 +5,24 @@
 
 package frc.robot.subsystems;
 
-import java.security.PublicKey;
-
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-//import frc.robot.Constants;
 import frc.robot.Constants.ClimbConstants;
 
 public class Climber extends SubsystemBase
 {
     private SparkMax m_climbMotor;
-    private Solenoid m_SolenoidOne;
-    private Solenoid m_SolenoidTwo; 
-    double climbSpeed = 0.5;
+    private DoubleSolenoid m_Solenoid;
     
     public Climber()
     {
         m_climbMotor = new SparkMax(ClimbConstants.climbMotorID, MotorType.kBrushed);
-        m_SolenoidOne = new Solenoid(PneumaticsModuleType.CTREPCM, 4);
-        m_SolenoidTwo = new Solenoid(PneumaticsModuleType.CTREPCM, 5);
+        m_Solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 4, 5);
     }
 
     @Override
@@ -39,19 +31,23 @@ public class Climber extends SubsystemBase
     public Command RunMotor(boolean reverse)
     {
         return this.run(()->{
-            m_climbMotor.set(climbSpeed * (reverse ? -1 : 1)); 
+            m_climbMotor.set(ClimbConstants.climbSpeed * (reverse ? -1 : 1)); 
         });
     }
 
     public Command ControlPneumatics(boolean open){
         return this.run(()->{
             if(open){
-                m_SolenoidTwo.set(false);
-                m_SolenoidOne.set(true);
+                m_Solenoid.set(DoubleSolenoid.Value.kForward);
             }else{
-                m_SolenoidOne.set(false);
-                m_SolenoidTwo.set(true);
+                m_Solenoid.set(DoubleSolenoid.Value.kReverse);
             }
+        });
+    }
+
+    public Command TurnOffPneumatics(){
+        return this.run(() ->{ 
+            m_Solenoid.set(DoubleSolenoid.Value.kOff);
         });
     }
 

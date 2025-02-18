@@ -13,8 +13,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -27,8 +27,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     
     private TalonFX mElevatorMotor;
     private TalonFX mArmMotor;
-    private Solenoid mHopperOpenSolenoid;
-    private Solenoid mHopperCloseSolenoid;
+    private DoubleSolenoid mHopperSolenoid;
 
     private NetworkTableInstance mNetworkTable;
     private NetworkTable mScoringNetworkTable;
@@ -205,8 +204,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         //Down is 270
         mArmRequest = new PositionVoltage(90).withSlot(0);
 
-        mHopperOpenSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, 2);
-        mHopperCloseSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, 3);
+        mHopperSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
 
         mNetworkTable = NetworkTableInstance.getDefault();
         mScoringNetworkTable = mNetworkTable.getTable("automaticScoringPosition");
@@ -219,7 +217,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         if (0 <= height && height <= 0.762) {
             return this.run(() -> {
                 mElevatorMotor.setControl(mElevatorRequest.withPosition(Conversions.metersToRotations(height, 0.13) * multiplier));
-            }).alongWith(Commands.waitUntil(() -> mElevatorMotor.getVelocity().getValueAsDouble() < 0.1));
+            }).alongWith(Commands.waitUntil(() -> mElevatorMotor.getVelocity().getValueAsDouble() < 0.1 && mElevatorMotor.getPosition().getValueAsDouble() < 0.02)); //0.02 meter ~=~ 0.75 inch
         } else {
             return null;
         }
@@ -247,7 +245,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         if (-180 <= pose.getDegrees() && pose.getDegrees() <= 180) {
             return this.run(() -> {
                 mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
-            }).alongWith(Commands.waitUntil(() -> mArmMotor.getVelocity().getValueAsDouble() < 0.1));
+            }).alongWith(Commands.waitUntil(() -> mArmMotor.getVelocity().getValueAsDouble() < 0.1 && mArmMotor.getPosition().getValueAsDouble() < 0.05));
         } else {
             return null;
         }

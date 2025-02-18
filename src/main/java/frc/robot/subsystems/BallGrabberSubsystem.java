@@ -6,43 +6,49 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants.grabConstants;
 
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 
 public class BallGrabberSubsystem extends SubsystemBase {
     /** Creates a new BallGrabber. */
     
     private SparkMax grabMotor;
-    private double grabSpeed;
-    private boolean grab;
+    private DoubleSolenoid mSolenoid;
 
     public BallGrabberSubsystem() {
-        this.grabMotor = new SparkMax(grabConstants.grabMotorID, MotorType.kBrushed);
-        this.grabSpeed = grabConstants.grabSpeed;
-        this.grab = true;
+        grabMotor = new SparkMax(grabConstants.grabMotorID, MotorType.kBrushed);
+
+        mSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, -1, -1);
+        mSolenoid.set(DoubleSolenoid.Value.kForward);
     }
 
-    public void GrabReleaseBall() {
-        if (grab) {
-            grabMotor.set(grabSpeed);
-        } else if (!grab) {
-            grabMotor.set(-grabSpeed);
-        }
+    public void RunMotor(boolean foward) {
+        grabMotor.set(grabConstants.grabSpeed * (foward ? 1 : -1));
     }
 
-    public void StopGrabber() {
+    public void StopMotor() {
         grabMotor.set(0);
-        grab = !grab;
     }
 
-    public static Command BallGrabberCommand(BallGrabberSubsystem ballGrabber) {
-        return Commands.runEnd(() -> ballGrabber.GrabReleaseBall(), () -> ballGrabber.StopGrabber());
+    public Command controlPneumaticsCommand(boolean foward){
+        return this.run(() -> {
+            if(foward){
+                mSolenoid.set(DoubleSolenoid.Value.kForward);
+            }else{
+                mSolenoid.set(DoubleSolenoid.Value.kReverse);
+            }
+        });
+    }
+
+    public Command turnPnuematicsOff(){
+        return this.run(() -> {
+            mSolenoid.set(DoubleSolenoid.Value.kOff);
+        });
     }
 
     @Override
