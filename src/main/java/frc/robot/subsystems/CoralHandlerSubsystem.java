@@ -31,6 +31,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     private NetworkTableInstance mNetworkTable;
     private NetworkTable mScoringNetworkTable;
+    private NetworkTable mMotorNetworkTable;
+    private NetworkTableEntry mElevatorHeight;
+    private NetworkTableEntry mArmAngle;
     private NetworkTableEntry mSelectedScoringHeightEntry;
     private NetworkTableEntry mSelectedScoringSideEntry;
     private final PositionVoltage mElevatorRequest;
@@ -39,8 +42,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     private static final double multiplier = 7.07;
 
-    
-    //TODO: DO AWAY WITH OLD STATE MACHINE AND USE "THE MONSTROSITY"
     public class CoralHandlerStateMachine {
         public enum State
         {
@@ -68,6 +69,10 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     
             double getArmAngleDegrees() {
                 return this.armAngleDegrees;
+            }
+
+            boolean getIsHopperIn() {
+                return this.isHopperIn;
             }
     
         }
@@ -170,16 +175,21 @@ public class CoralHandlerSubsystem extends SubsystemBase {
             SequentialCommandGroup ret = new SequentialCommandGroup();
     
             for (State inter : path.subList(1, path.size())) {
-                ret = ret.andThen(() -> {
-                    subsystem.moveElevatorTo(inter.getElevatorHeightMeters());
-                    subsystem.changeArmPose(new Rotation2d((inter.getArmAngleDegrees() * Math.PI)/180));
-                });
+                ret = ret.andThen(subsystem.setHopperState(inter.getIsHopperIn()))
+                         .andThen(subsystem.moveElevatorTo(inter.getElevatorHeightMeters()))
+                         .andThen(subsystem.changeArmPose(new Rotation2d((inter.getArmAngleDegrees() * Math.PI)/180)));
             }
             return ret;
         }
     }
 
     private CoralHandlerStateMachine coralHandlerStateMachine;
+
+    @Override
+    public void periodic() {
+        mArmAngle.setDouble(mArmMotor.getPosition().getValueAsDouble()*360);
+        mElevatorHeight.setDouble(mElevatorMotor.getPosition().getValueAsDouble()/39.37);
+    }
 
     public CoralHandlerSubsystem() {
         coralHandlerStateMachine = new CoralHandlerStateMachine(this);
@@ -208,6 +218,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
         mNetworkTable = NetworkTableInstance.getDefault();
         mScoringNetworkTable = mNetworkTable.getTable("automaticScoringPosition");
+        mMotorNetworkTable = mNetworkTable.getTable("armMotorNetworkTable");
+        mElevatorHeight = mMotorNetworkTable.getEntry("ElevatorHeight");
+        mArmAngle = mMotorNetworkTable.getEntry("ArmAngle");
         mSelectedScoringHeightEntry = mScoringNetworkTable.getEntry("scoringHeight");
         mSelectedScoringSideEntry = mScoringNetworkTable.getEntry("scoringSide");
     }
@@ -223,11 +236,21 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         }
     }
 
-    // Returns the elevator to the bottom at its predefined resting position
-    public Command rest() {
+    public Command setHopperState(boolean isHopperIn) {
         return this.run(() -> {
-            mElevatorMotor.setControl(mElevatorRequest.withPosition(Conversions.metersToRotations(CoralHandlerConstants.restPose, 0.13) * multiplier));
+            mHopperSolenoid.set(isHopperIn ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
         });
+    }
+    
+    public Command changeArmPose(Rotation2d pose) {
+        // mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
+        if (-180 <= pose.getDegrees() && pose.getDegrees() <= 180) {
+            return this.run(() -> {
+                mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
+            }).alongWith(Commands.waitUntil(() -> mArmMotor.getVelocity().getValueAsDouble() < 0.1 && mArmMotor.getPosition().getValueAsDouble() < 0.05));
+        } else {
+            return null;
+        }
     }
 
     // Stops the elevator motor at its current position
@@ -238,17 +261,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     // Stops the arm at its current position
     public void stopArmMotor(){
         mArmMotor.set(0);
-    }
-
-    public Command changeArmPose(Rotation2d pose) {
-        // mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
-        if (-180 <= pose.getDegrees() && pose.getDegrees() <= 180) {
-            return this.run(() -> {
-                mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
-            }).alongWith(Commands.waitUntil(() -> mArmMotor.getVelocity().getValueAsDouble() < 0.1 && mArmMotor.getPosition().getValueAsDouble() < 0.05));
-        } else {
-            return null;
-        }
     }
 
     public Command runStatePath(List<CoralHandlerStateMachine.State> path) {

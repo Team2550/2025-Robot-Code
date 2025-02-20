@@ -35,6 +35,13 @@ public class Climber extends SubsystemBase
         });
     }
 
+    public Command StopMotor()
+    {
+        return this.run(()->{
+            m_climbMotor.set(0); 
+        });
+    }
+
     public Command ControlPneumatics(boolean open){
         return this.run(()->{
             if(open){

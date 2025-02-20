@@ -21,8 +21,6 @@ public class RobotContainer {
     private Compressor mCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
 
     private final SendableChooser<Command> autoChooser;
-    private final SendableChooser<Integer> scoringHeightChooser;
-
     /* Controllers */
     private final Joystick driver = new Joystick(0);
     private final Joystick operator = new Joystick(1);
@@ -43,19 +41,19 @@ public class RobotContainer {
     // private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
     // Operator Buttons
-    private final JoystickButton ballIntakeButton =     new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
-    private final JoystickButton ballExpelButton =      new JoystickButton(operator, XboxController.Button.kRightBumper.value);
-    private final JoystickButton climberLatchButton =   new JoystickButton(operator, XboxController.Button.kBack.value);
-    private final JoystickButton climberUnLatchButton = new JoystickButton(operator, XboxController.Button.kStart.value);
+    private final JoystickButton op_ballIntakeButton =     new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton op_ballExpelButton =      new JoystickButton(operator, XboxController.Button.kRightBumper.value);
+    private final JoystickButton op_climberLatchButton =   new JoystickButton(operator, XboxController.Button.kBack.value);
+    private final JoystickButton op_climberUnLatchButton = new JoystickButton(operator, XboxController.Button.kStart.value);
 
-    private final JoystickButton l2Button = new JoystickButton(operator, XboxController.Button.kA.value);
-    private final JoystickButton l3Button = new JoystickButton(operator, XboxController.Button.kX.value);
-    private final JoystickButton l4Button = new JoystickButton(operator, XboxController.Button.kY.value);
+    private final JoystickButton op_l2Button = new JoystickButton(operator, XboxController.Button.kA.value);
+    private final JoystickButton op_l3Button = new JoystickButton(operator, XboxController.Button.kX.value);
+    private final JoystickButton op_l4Button = new JoystickButton(operator, XboxController.Button.kY.value);
 
     // Driver Buttons
-    private final JoystickButton climbButton =     new JoystickButton(driver, XboxController.Button.kBack.value);
-    private final JoystickButton unClimbButton =   new JoystickButton(driver, XboxController.Button.kStart.value);
-    private final JoystickButton dropCoralButton = new JoystickButton(driver, XboxController.Button.kB.value);
+    private final JoystickButton dr_climbButton =     new JoystickButton(driver, XboxController.Button.kBack.value);
+    private final JoystickButton dr_unClimbButton =   new JoystickButton(driver, XboxController.Button.kStart.value);
+    private final JoystickButton dr_dropCoralButton = new JoystickButton(driver, XboxController.Button.kB.value);
 
     // Subsystems
     private final CoralHandlerSubsystem s_CoralHandler = new CoralHandlerSubsystem();
@@ -94,19 +92,6 @@ public class RobotContainer {
             )
         );
 
-        scoringHeightChooser = new SendableChooser<Integer>();
-
-        // yes its ugly
-        scoringHeightChooser.addOption("Left L2", Constants.Reefscape.ScoringPositionID.LEFT_L2.ordinal());
-        scoringHeightChooser.addOption("Right L2", Constants.Reefscape.ScoringPositionID.RIGHT_L2.ordinal());
-        scoringHeightChooser.addOption("Left L3", Constants.Reefscape.ScoringPositionID.LEFT_L3.ordinal());
-        scoringHeightChooser.addOption("Right L3", Constants.Reefscape.ScoringPositionID.RIGHT_L3.ordinal());
-        scoringHeightChooser.addOption("Left L4", Constants.Reefscape.ScoringPositionID.LEFT_L4.ordinal());
-        scoringHeightChooser.addOption("Right L4", Constants.Reefscape.ScoringPositionID.RIGHT_L4.ordinal());
-
-        //SmartDashboard.putData("Auto Chooser", autoChooser);
-        SmartDashboard.putData("Scoring Height Chooser", scoringHeightChooser);
-
         // Configure the button bindings
         configureButtonBindings();
     }
@@ -123,11 +108,26 @@ public class RobotContainer {
         //driveToPoint.whileTrue(Swerve.pathfindCommand());
         // ballIntakeButton.whileTrue(null);
         // ballExpelButton.whileTrue(null);
-        climberLatchButton.onTrue(s_Climber.ControlPneumatics(true));
-        climberUnLatchButton.onTrue(s_Climber.ControlPneumatics(false));
+
+        // DEBUG BINDINGS //
+        op_ballIntakeButton.onTrue(s_BallGrabber.RunMotor(true)); // LB
+        op_ballIntakeButton.onFalse(s_BallGrabber.StopMotor());
+        op_ballExpelButton.onTrue(s_BallGrabber.RunMotor(false)); // RB
+        op_ballExpelButton.onFalse(s_BallGrabber.StopMotor());
+
+        op_climberLatchButton.onTrue(s_Climber.ControlPneumatics(true)); // Back (NOT DEBUG)
+        op_climberUnLatchButton.onTrue(s_Climber.ControlPneumatics(false)); // Start (NOT DEBUG)
+
+        dr_climbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(true)); // Back
+        dr_unClimbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(false)); // Start
     
-        climbButton.onTrue(s_Climber.RunMotor(false));
-        unClimbButton.onTrue(s_Climber.RunMotor(true));
+        dr_climbButton.onTrue(s_Climber.RunMotor(false));
+        dr_climbButton.onFalse(s_Climber.StopMotor());
+        dr_unClimbButton.onTrue(s_Climber.RunMotor(true)); 
+        dr_unClimbButton.onFalse(s_Climber.StopMotor());
+    
+        
+
         // dropCoralButton.onTrue(null);
     }
 

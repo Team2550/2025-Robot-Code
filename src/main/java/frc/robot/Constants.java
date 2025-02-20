@@ -35,13 +35,13 @@ public final class Constants {
     public static final class ClimbConstants 
     {
         public static final int climbMotorID = 1;
-        public static final double climbSpeed = 0.5;
+        public static final double climbSpeed = 1;
     }
 
     public static final class grabConstants {
         //TODO: actual id
         public static final int grabMotorID = 2;
-        public static final double grabSpeed = 0.2;
+        public static final double grabSpeed = 1;
     }
 
     public static final double stickDeadband = 0.1;
