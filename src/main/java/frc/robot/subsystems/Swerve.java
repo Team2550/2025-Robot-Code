@@ -48,7 +48,7 @@ public class Swerve extends SubsystemBase {
         m_photonVision = vision;
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
-        gyro.setYaw(0);
+        gyro.setYaw(180);
 
         mSwerveMods = new SwerveModule[] {
             new SwerveModule(0, Constants.Swerve.Mod0.constants),

@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
 
 public class RobotContainer {
     private Compressor mCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
@@ -67,7 +68,7 @@ public class RobotContainer {
 
     /* The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        mCompressor.enableDigital(); //We may want to use analog or hybrid
+        mCompressor.disable(); //We may want to use analog or hybrid
 
         autoChooser = AutoBuilder.buildAutoChooser();
         s_Swerve.setDefaultCommand(
@@ -119,12 +120,14 @@ public class RobotContainer {
         op_climberUnLatchButton.onTrue(s_Climber.ControlPneumatics(false)); // Start (NOT DEBUG)
 
         dr_climbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(true)); // Back
-        dr_unClimbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(false)); // Start
+        // dr_unClimbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(false)); // Start
+        
+        dr_unClimbButton.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L2)));
     
         dr_climbButton.onTrue(s_Climber.RunMotor(false));
         dr_climbButton.onFalse(s_Climber.StopMotor());
-        dr_unClimbButton.onTrue(s_Climber.RunMotor(true)); 
-        dr_unClimbButton.onFalse(s_Climber.StopMotor());
+        // dr_unClimbButton.onTrue(s_Climber.RunMotor(true)); 
+        // dr_unClimbButton.onFalse(s_Climber.StopMotor());
     
         
 

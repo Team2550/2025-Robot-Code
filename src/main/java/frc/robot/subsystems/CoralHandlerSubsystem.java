@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Value;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +19,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.math.Conversions;
@@ -45,11 +48,11 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     public class CoralHandlerStateMachine {
         public enum State
         {
-            Rest(-1,-1, false),
-            CoralPickup1(-1,-1, false),
-            CoralPickup2(-1,-1, true),
+            Rest(0.05,-90, false),
+            CoralPickup1(0.05,-90, false),
+            CoralPickup2(0.05,0, true),
             L1(-1,-1, false),
-            L2(-1,-1, false),
+            L2(0.433,-41.484, false),
             L3(-1,-1, true),
             L4(-1,-1, true);
     
@@ -173,17 +176,28 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     
         public Command runStatePath(List<State> path) {
             SequentialCommandGroup ret = new SequentialCommandGroup();
-    
+
             for (State inter : path.subList(1, path.size())) {
-                ret = ret.andThen(subsystem.setHopperState(inter.getIsHopperIn()))
-                         .andThen(subsystem.moveElevatorTo(inter.getElevatorHeightMeters()))
-                         .andThen(subsystem.changeArmPose(new Rotation2d((inter.getArmAngleDegrees() * Math.PI)/180)));
+                ret = ret//.andThen(subsystem.setHopperState(inter.getIsHopperIn()))
+                    .andThen(setElevatorAndArm(new Rotation2d(inter.armAngleDegrees * (Math.PI/180)), inter.elevatorHeightMeters));
             }
             return ret;
         }
     }
 
+    private Command setElevatorAndArm(Rotation2d armRotation2d, double elevatorHeightMeters){
+        return this.run(() -> {
+            mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()));
+            mElevatorMotor.setControl(mElevatorRequest.withPosition(Conversions.metersToRotations(elevatorHeightMeters, 0.13) * multiplier));
+        }).andThen(
+            Commands.waitUntil(() -> mElevatorMotor.getVelocity().getValueAsDouble() < 0.1 &&
+            mElevatorMotor.getPosition().getValueAsDouble() < 0.02 && 
+            mArmMotor.getVelocity().getValueAsDouble() < 0.1 && 
+            mArmMotor.getPosition().getValueAsDouble() < 0.05));
+    }
+
     private CoralHandlerStateMachine coralHandlerStateMachine;
+
 
     @Override
     public void periodic() {
@@ -202,7 +216,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mElevatorMotor.setPosition(0);
         mElevatorRequest = new PositionVoltage(0).withSlot(0);
 
-        //Set Up Arm Motor
+        //Set Up Arm Motor;
         mArmMotor = new TalonFX(24);
         mArmMotor.getConfigurator().apply(Robot.ctreConfigs.armMotorFXConfig);
         mArmMotor.getConfigurator().apply(Robot.ctreConfigs.armMotorPIDConfig);
@@ -225,16 +239,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mSelectedScoringSideEntry = mScoringNetworkTable.getEntry("scoringSide");
     }
 
-    // Sets the height of the elevator from the bottom in meters
-    public Command moveElevatorTo(double height) {
-        if (0 <= height && height <= 0.762) {
-            return this.run(() -> {
-                mElevatorMotor.setControl(mElevatorRequest.withPosition(Conversions.metersToRotations(height, 0.13) * multiplier));
-            }).alongWith(Commands.waitUntil(() -> mElevatorMotor.getVelocity().getValueAsDouble() < 0.1 && mElevatorMotor.getPosition().getValueAsDouble() < 0.02)); //0.02 meter ~=~ 0.75 inch
-        } else {
-            return null;
-        }
-    }
 
     public Command setHopperState(boolean isHopperIn) {
         return this.run(() -> {
@@ -242,16 +246,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         });
     }
     
-    public Command changeArmPose(Rotation2d pose) {
-        // mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
-        if (-180 <= pose.getDegrees() && pose.getDegrees() <= 180) {
-            return this.run(() -> {
-                mArmMotor.setControl(mArmRequest.withPosition((pose.getDegrees() * 62.5) / 360));
-            }).alongWith(Commands.waitUntil(() -> mArmMotor.getVelocity().getValueAsDouble() < 0.1 && mArmMotor.getPosition().getValueAsDouble() < 0.05));
-        } else {
-            return null;
-        }
-    }
 
     // Stops the elevator motor at its current position
     public void stopElevatorMotor() {

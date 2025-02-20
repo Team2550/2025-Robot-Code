@@ -16,8 +16,8 @@ public class TeleopCoral extends Command {
     private BooleanSupplier l3ButtonPressed;
     private BooleanSupplier l4ButtonPressed;
     private IntSupplier operatorDPadPOV;
-    private State currentState;
-    private State newState;
+    private State currentState = State.Rest;
+    private State newState = State.L2;
 
     public TeleopCoral(CoralHandlerSubsystem coralHandlerSubsystem, DoubleSupplier operatorActionAxisSup, BooleanSupplier l2ButtonPressed, BooleanSupplier l3ButtonPressed, BooleanSupplier l4ButtonPressed, IntSupplier operatorDPadPOV) {
         this.s_CoralHandler = coralHandlerSubsystem;
@@ -32,19 +32,15 @@ public class TeleopCoral extends Command {
     @Override
     public void execute() {
 
-        if (l2ButtonPressed.getAsBoolean()) {
-            newState = State.L2;
-        } else if (l3ButtonPressed.getAsBoolean()) {
-            newState = State.L3;
-        } else if (l4ButtonPressed.getAsBoolean()) {
-            newState = State.L4;
-        }
+        // if (l2ButtonPressed.getAsBoolean()) {
+        //     newState = State.L2;
+        // } else if (l3ButtonPressed.getAsBoolean()) {
+        //     newState = State.L3;
+        // } else if (l4ButtonPressed.getAsBoolean()) {
+        //     newState = State.L4;
+        // }
 
         if (operatorActionAxisSup.getAsDouble() > 0.7) {
-            s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(currentState, newState))
-                .andThen(new InstantCommand(() -> {
-                    currentState = newState;
-                })).schedule();
         }
     }
 }
