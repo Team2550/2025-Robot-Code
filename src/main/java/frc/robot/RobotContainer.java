@@ -68,7 +68,7 @@ public class RobotContainer {
 
     /* The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        mCompressor.disable(); //We may want to use analog or hybrid
+        mCompressor.enableDigital(); //We may want to use analog or hybrid
 
         autoChooser = AutoBuilder.buildAutoChooser();
         s_Swerve.setDefaultCommand(
@@ -121,8 +121,10 @@ public class RobotContainer {
 
         dr_climbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(true)); // Back
         // dr_unClimbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(false)); // Start
-        
-        dr_unClimbButton.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L2)));
+
+        dr_unClimbButton.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L4)));
+        dr_dropCoralButton.onTrue(s_CoralHandler.setCoralGrabberState(false));
+        dr_dropCoralButton.onFalse(s_CoralHandler.setCoralGrabberState(true));
     
         dr_climbButton.onTrue(s_Climber.RunMotor(false));
         dr_climbButton.onFalse(s_Climber.StopMotor());
