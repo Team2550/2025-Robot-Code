@@ -13,7 +13,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
@@ -38,7 +39,7 @@ public class RobotContainer {
     private final int coralSetSideRightAxis = XboxController.Axis.kRightTrigger.value;
 
     /* Driver Buttons */
-    // private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
     // private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
     // Operator Buttons
@@ -52,6 +53,12 @@ public class RobotContainer {
     private final JoystickButton op_l4Button = new JoystickButton(operator, XboxController.Button.kY.value);
 
     // Driver Buttons
+    private final Trigger dr_RT_autoAlignAxis = new Trigger(() -> driver.getRawAxis(XboxController.Axis.kRightTrigger.value) > 0.7);
+    private final Trigger dr_LT_autoAlignAxis = new Trigger(() -> driver.getRawAxis(XboxController.Axis.kLeftTrigger.value) > 0.7);
+    private final JoystickButton dr_LB_sysid = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton dr_RB_sysid = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
+
+
     private final JoystickButton dr_climbButton =     new JoystickButton(driver, XboxController.Button.kBack.value);
     private final JoystickButton dr_unClimbButton =   new JoystickButton(driver, XboxController.Button.kStart.value);
     private final JoystickButton dr_dropCoralButton = new JoystickButton(driver, XboxController.Button.kB.value);
@@ -99,39 +106,43 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
         /* Driver Buttons */
-        // zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        // climbButton.whileTrue(s_Climber.Climb(false));
-        // climbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
-        // unClimbButton.whileTrue(s_Climber.Climb(true));
-        // unClimbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
 
-        //grabButton.onTrue(BallGrabberSubsystem.BallGrabberCommand(s_BallGrabber));
-        //driveToPoint.whileTrue(Swerve.pathfindCommand());
+        dr_climbButton.whileTrue(s_Climber.RunMotor(false));
+        dr_climbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+        dr_unClimbButton.whileTrue(s_Climber.RunMotor(true));
+        dr_unClimbButton.onFalse(new InstantCommand(() -> s_Climber.Stop()));
+
+        // grabButton.onTrue(BallGrabberSubsystem.BallGrabberCommand(s_BallGrabber));
+        // driveToPoint.whileTrue(Swerve.pathfindCommand());
         // ballIntakeButton.whileTrue(null);
         // ballExpelButton.whileTrue(null);
 
-        // DEBUG BINDINGS //
         op_ballIntakeButton.onTrue(s_BallGrabber.RunMotor(true)); // LB
         op_ballIntakeButton.onFalse(s_BallGrabber.StopMotor());
         op_ballExpelButton.onTrue(s_BallGrabber.RunMotor(false)); // RB
         op_ballExpelButton.onFalse(s_BallGrabber.StopMotor());
+        
+        dr_dropCoralButton.onTrue(s_CoralHandler.setCoralGrabberState(true));
+        dr_dropCoralButton.onFalse(s_CoralHandler.setCoralGrabberState(false));
 
         op_climberLatchButton.onTrue(s_Climber.ControlPneumatics(true)); // Back (NOT DEBUG)
         op_climberUnLatchButton.onTrue(s_Climber.ControlPneumatics(false)); // Start (NOT DEBUG)
 
         dr_climbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(true)); // Back
-        // dr_unClimbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(false)); // Start
-
-        dr_unClimbButton.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L4)));
-        dr_dropCoralButton.onTrue(s_CoralHandler.setCoralGrabberState(false));
-        dr_dropCoralButton.onFalse(s_CoralHandler.setCoralGrabberState(true));
+        dr_unClimbButton.onTrue(s_BallGrabber.controlPneumaticsCommand(false)); // Start
     
-        dr_climbButton.onTrue(s_Climber.RunMotor(false));
-        dr_climbButton.onFalse(s_Climber.StopMotor());
+        // dr_climbButton.onTrue(s_Climber.RunMotor(false));
+        // dr_climbButton.onFalse(s_Climber.StopMotor());
+
         // dr_unClimbButton.onTrue(s_Climber.RunMotor(true)); 
         // dr_unClimbButton.onFalse(s_Climber.StopMotor());
     
-        
+        // dr_RT_autoAlignAxis.whileTrue(s_CoralHandler.runSysIdDynamic(Direction.kForward));
+        // dr_LT_autoAlignAxis.whileTrue(s_CoralHandler.runSysIdQuasistatic(Direction.kForward));
+
+        // dr_RB_sysid.whileTrue(s_CoralHandler.runSysIdDynamic(Direction.kReverse));
+        // dr_LB_sysid.whileTrue(s_CoralHandler.runSysIdQuasistatic(Direction.kReverse));
 
         // dropCoralButton.onTrue(null);
     }

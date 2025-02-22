@@ -28,7 +28,15 @@ public class BallGrabberSubsystem extends SubsystemBase {
     }
 
     public Command RunMotor(boolean foward) {
-        return this.run(() -> {grabMotor.set(grabConstants.grabSpeed * (foward ? 1 : -1));});
+        return this.run(() -> {
+            grabMotor.set(grabConstants.grabSpeed * (foward ? 1 : -1));
+
+            if(foward){
+                mSolenoid.set(DoubleSolenoid.Value.kForward);
+            }else{
+                mSolenoid.set(DoubleSolenoid.Value.kReverse);
+            }
+        });
     }
 
     public Command StopMotor() {

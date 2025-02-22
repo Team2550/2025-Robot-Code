@@ -21,7 +21,7 @@ public class Climber extends SubsystemBase
     
     public Climber()
     {
-        m_climbMotor = new SparkMax(ClimbConstants.climbMotorID, MotorType.kBrushed);
+        m_climbMotor = new SparkMax(ClimbConstants.climbMotorID, MotorType.kBrushless);
         m_Solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 4, 5);
     }
 

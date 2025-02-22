@@ -1,7 +1,10 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Value;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,11 +14,15 @@ import java.util.List;
 import java.util.Queue;
 
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.LinearVelocityUnit;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,6 +30,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.math.Conversions;
 import frc.robot.Robot;
 import frc.robot.Constants.CoralHandlerConstants;
@@ -45,6 +54,8 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     private NetworkTableEntry mSelectedScoringSideEntry;
     private final PositionVoltage mElevatorRequest;
     private final PositionVoltage mArmRequest;
+
+    private SysIdRoutine sysId;
     
 
     private static final double multiplier = 7.07;
@@ -189,14 +200,29 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         }
     }
 
-    Rotation2d arm;
+    Rotation2d arm = new Rotation2d(-90 * (Math.PI/180), 0);
 
     private Command setElevatorAndArm(State inter) {
         Rotation2d armRotation2d = new Rotation2d(inter.armAngleDegrees * (Math.PI/180));
         arm = armRotation2d;
         double elevatorHeightMeters = inter.elevatorHeightMeters;
-        
-        return Commands.sequence(
+        if(inter == State.Rest){
+            return Commands.sequence(
+                // Move the arm to the desired position
+                this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()))),
+                // Wait until the arm is within tolerance
+                Commands.waitUntil(() -> 
+                    Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
+                    Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
+                ),
+
+                // Move the elevator to the desired height
+                this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
+                // Wait until the elevator is within tolerance
+                Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - elevatorHeightMeters) < 0.07)
+            ); 
+        }else{
+            return Commands.sequence(
             // Move the elevator to the desired height
             this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
             // Wait until the elevator is within tolerance
@@ -209,7 +235,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                 Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
                 Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
             )
-        );
+        ); }
     }
     
 
@@ -224,6 +250,19 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     }
 
     public CoralHandlerSubsystem() {
+        sysId = new SysIdRoutine(
+            new SysIdRoutine.Config(),
+            new SysIdRoutine.Mechanism(
+                volts -> mElevatorMotor.setControl(new VoltageOut(volts)),
+                log -> log.motor("ElevatorMotor")
+                            .voltage(mElevatorMotor.getSupplyVoltage().getValue())
+                            .current(mElevatorMotor.getStatorCurrent().getValue())
+                            .linearPosition(Meters.of(mElevatorMotor.getPosition().getValueAsDouble()))
+                            .linearVelocity(MetersPerSecond.of(mElevatorMotor.getVelocity().getValueAsDouble())),
+                this
+            )
+        );
+
         coralHandlerStateMachine = new CoralHandlerStateMachine(this);
 
         //Set Up Elevator Motor
@@ -257,6 +296,14 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mSelectedScoringHeightEntry = mScoringNetworkTable.getEntry("scoringHeight");
         mSelectedScoringSideEntry = mScoringNetworkTable.getEntry("scoringSide");
         mArmAngleTolCalc = mMotorNetworkTable.getEntry("giggity");
+    }
+
+    public Command runSysIdQuasistatic(Direction direction) {
+        return sysId.quasistatic(direction);
+    }
+
+    public Command runSysIdDynamic(Direction direction) {
+        return sysId.dynamic(direction);
     }
 
 
