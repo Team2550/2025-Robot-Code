@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 public class BallGrabberSubsystem extends SubsystemBase {
     /** Creates a new BallGrabber. */
@@ -23,20 +25,21 @@ public class BallGrabberSubsystem extends SubsystemBase {
     public BallGrabberSubsystem() {
         grabMotor = new SparkMax(grabConstants.grabMotorID, MotorType.kBrushed);
 
-        mSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
+        mSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 6, 7);
         mSolenoid.set(DoubleSolenoid.Value.kForward);
     }
 
-    public Command RunMotor(boolean foward) {
-        return this.run(() -> {
-            grabMotor.set(grabConstants.grabSpeed * (foward ? 1 : -1));
+    public Command intakeCommand (){
+        return this.run(() -> {grabMotor.set(grabConstants.grabSpeed * (false ? 1 : -1)); mSolenoid.set(DoubleSolenoid.Value.kReverse);});
+    }
 
-            if(foward){
-                mSolenoid.set(DoubleSolenoid.Value.kForward);
-            }else{
-                mSolenoid.set(DoubleSolenoid.Value.kReverse);
-            }
-        });
+    public Command outtakeCommand (){
+        return this.run(() -> {grabMotor.stopMotor(); mSolenoid.set(DoubleSolenoid.Value.kForward);});
+    }
+
+    public Command RunMotor(boolean foward) {
+        return this.run(() -> {grabMotor.set(grabConstants.grabSpeed * (foward ? 1 : -1));});
+            //mSolenoid.set((foward ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse));});
     }
 
     public Command StopMotor() {

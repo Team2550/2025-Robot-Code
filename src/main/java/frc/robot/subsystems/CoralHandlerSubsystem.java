@@ -27,14 +27,12 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.math.Conversions;
 import frc.robot.Robot;
-import frc.robot.Constants.CoralHandlerConstants;
 import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
 
 public class CoralHandlerSubsystem extends SubsystemBase {
@@ -44,8 +42,10 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     private DoubleSolenoid mHopperSolenoid;
     private DoubleSolenoid mCoralGrabberSolenoid;
 
+    public State queuedState;
+    private State currentState;
+    
     private NetworkTableInstance mNetworkTable;
-    private NetworkTable mScoringNetworkTable;
     private NetworkTable mMotorNetworkTable;
     private NetworkTableEntry mElevatorHeight;
     private NetworkTableEntry mArmAngle;
@@ -65,10 +65,10 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         {
             Rest(0.05,-90, false), // DISCOVERED
             CoralPickup1(0.05,-90, false),
-            CoralPickup2(0.05,0, true),
+            CoralPickup2(0.05,0, false),
             L1(0.05,-90, false),
             L2(0.433,-41.484, false), // DISCOVERED
-            L3(0.05,-90, true),
+            L3(0.05,-90, false),
             L4(1.2,-25, false);
     
             private double elevatorHeightMeters;
@@ -189,12 +189,14 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         CoralHandlerSubsystem subsystem;
         CoralHandlerStateMachine(CoralHandlerSubsystem subsystem) { this.subsystem = subsystem; }
     
-        public Command runStatePath(List<State> path) {
+        public Command runStatePath(List<State> statePath) {
+            //List<State> statePath = CoralHandlerStateMachine.StateTransitionPath.findPath(getCurrentState(), queuedState);
             SequentialCommandGroup ret = new SequentialCommandGroup();
 
-            for (State inter : path.subList(1, path.size())) {
+            for (State inter : statePath.subList(1, statePath.size())) {
                 ret = ret//.andThen(subsystem.setHopperState(inter.getIsHopperIn()))
-                    .andThen(setElevatorAndArm(inter));
+                    .andThen(setElevatorAndArm(inter))
+                    .andThen(Commands.runOnce(() -> currentState = inter));
             }
             return ret;
         }
@@ -240,13 +242,14 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     
 
     private CoralHandlerStateMachine coralHandlerStateMachine;
-
+    public State getQueuedState() {return queuedState;}
+    public State getCurrentState(){return currentState;}
 
     @Override
     public void periodic() {
         mArmAngle.setDouble(mArmMotor.getPosition().getValueAsDouble()*360);
         mElevatorHeight.setDouble(mElevatorMotor.getPosition().getValueAsDouble());
-        mArmAngleTolCalc.setBoolean(Math.abs(mArmMotor.getPosition().getValueAsDouble() - arm.getRotations()) < 0.15);
+        mArmAngleTolCalc.setBoolean(Math.abs(mArmMotor.getPosition().getValueAsDouble() - arm.getRotations()) < 0.03);
     }
 
     public CoralHandlerSubsystem() {
@@ -286,15 +289,12 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmRequest = new PositionVoltage(90).withSlot(0);
 
         mHopperSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
-        mCoralGrabberSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 6, 7);
+        mCoralGrabberSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1); //TODO: THIS DOES NOT WORK!!!!
 
         mNetworkTable = NetworkTableInstance.getDefault();
-        mScoringNetworkTable = mNetworkTable.getTable("automaticScoringPosition");
         mMotorNetworkTable = mNetworkTable.getTable("armMotorNetworkTable");
         mElevatorHeight = mMotorNetworkTable.getEntry("ElevatorHeight");
         mArmAngle = mMotorNetworkTable.getEntry("ArmAngle");
-        mSelectedScoringHeightEntry = mScoringNetworkTable.getEntry("scoringHeight");
-        mSelectedScoringSideEntry = mScoringNetworkTable.getEntry("scoringSide");
         mArmAngleTolCalc = mMotorNetworkTable.getEntry("giggity");
     }
 
@@ -330,7 +330,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmMotor.set(0);
     }
 
-    public Command runStatePath(List<CoralHandlerStateMachine.State> path) {
-        return coralHandlerStateMachine.runStatePath(path);
+    public Command runStatePath(List<State> states) {
+        return coralHandlerStateMachine.runStatePath(states);
     }
 }
