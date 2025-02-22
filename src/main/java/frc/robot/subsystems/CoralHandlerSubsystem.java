@@ -1,8 +1,5 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Value;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,12 +17,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.math.Conversions;
 import frc.robot.Robot;
-import frc.robot.Constants.CoralHandlerConstants;
 import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
 
 public class CoralHandlerSubsystem extends SubsystemBase {
@@ -35,29 +29,33 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     private DoubleSolenoid mHopperSolenoid;
     private DoubleSolenoid mCoralGrabberSolenoid;
 
+    public State queuedState;
+    private State currentState;
+
+    private final PositionVoltage mElevatorRequest;
+    private final PositionVoltage mArmRequest;
+
     private NetworkTableInstance mNetworkTable;
-    private NetworkTable mScoringNetworkTable;
     private NetworkTable mMotorNetworkTable;
     private NetworkTableEntry mElevatorHeight;
     private NetworkTableEntry mArmAngle;
     private NetworkTableEntry mArmAngleTolCalc;
-    private NetworkTableEntry mSelectedScoringHeightEntry;
-    private NetworkTableEntry mSelectedScoringSideEntry;
-    private final PositionVoltage mElevatorRequest;
-    private final PositionVoltage mArmRequest;
+    private NetworkTableEntry mQueuedState;
+
+    Rotation2d arm = new Rotation2d(-1.57079633);
     
 
-    private static final double multiplier = 7.07;
+    //private static final double multiplier = 7.07; //This was phased out but we may still need it. 
 
     public class CoralHandlerStateMachine {
         public enum State
         {
             Rest(0.05,-90, false), // DISCOVERED
             CoralPickup1(0.05,-90, false),
-            CoralPickup2(0.05,0, true),
+            CoralPickup2(0.05,0, false),
             L1(0.05,-90, false),
             L2(0.433,-41.484, false), // DISCOVERED
-            L3(0.05,-90, true),
+            L3(0.05,-90, false),
             L4(1.2,-25, false);
     
             private double elevatorHeightMeters;
@@ -178,25 +176,40 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         CoralHandlerSubsystem subsystem;
         CoralHandlerStateMachine(CoralHandlerSubsystem subsystem) { this.subsystem = subsystem; }
     
-        public Command runStatePath(List<State> path) {
+        public Command runStatePath(List<State> statePath) {
+            //List<State> statePath = CoralHandlerStateMachine.StateTransitionPath.findPath(getCurrentState(), queuedState);
             SequentialCommandGroup ret = new SequentialCommandGroup();
 
-            for (State inter : path.subList(1, path.size())) {
+            for (State inter : statePath.subList(1, statePath.size())) {
                 ret = ret//.andThen(subsystem.setHopperState(inter.getIsHopperIn()))
-                    .andThen(setElevatorAndArm(inter));
+                    .andThen(setElevatorAndArm(inter))
+                    .andThen(Commands.runOnce(() -> currentState = inter));
             }
             return ret;
         }
     }
 
-    Rotation2d arm;
-
-    private Command setElevatorAndArm(State inter) {
+    public Command setElevatorAndArm(State inter) {
         Rotation2d armRotation2d = new Rotation2d(inter.armAngleDegrees * (Math.PI/180));
         arm = armRotation2d;
         double elevatorHeightMeters = inter.elevatorHeightMeters;
-        
-        return Commands.sequence(
+        if(inter == State.Rest){
+            return Commands.sequence(
+            // Move the arm to the desired position
+            this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()))),
+            // Wait until the arm is within tolerance
+            Commands.waitUntil(() -> 
+                Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
+                Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
+            ), 
+            
+            // Move the elevator to the desired height
+            this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
+            // Wait until the elevator is within tolerance
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - elevatorHeightMeters) < 0.035)
+        );
+        }else{
+            return Commands.sequence(
             // Move the elevator to the desired height
             this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
             // Wait until the elevator is within tolerance
@@ -210,20 +223,28 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                 Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
             )
         );
+        }
+        
     }
     
 
     private CoralHandlerStateMachine coralHandlerStateMachine;
-
+    public State getQueuedState() {return queuedState;}
+    public State getCurrentState(){return currentState;}
 
     @Override
     public void periodic() {
         mArmAngle.setDouble(mArmMotor.getPosition().getValueAsDouble()*360);
         mElevatorHeight.setDouble(mElevatorMotor.getPosition().getValueAsDouble());
-        mArmAngleTolCalc.setBoolean(Math.abs(mArmMotor.getPosition().getValueAsDouble() - arm.getRotations()) < 0.15);
+        mArmAngleTolCalc.setBoolean(Math.abs(mArmMotor.getPosition().getValueAsDouble() - arm.getRotations()) < 0.03);
+        mQueuedState.setBoolean(queuedState == currentState);
     }
 
     public CoralHandlerSubsystem() {
+        currentState = State.Rest;
+        queuedState = State.Rest;
+        
+
         coralHandlerStateMachine = new CoralHandlerStateMachine(this);
 
         //Set Up Elevator Motor
@@ -247,18 +268,19 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmRequest = new PositionVoltage(90).withSlot(0);
 
         mHopperSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
-        mCoralGrabberSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 6, 7);
+        mCoralGrabberSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1); //TODO: THIS DOES NOT WORK!!!!
 
         mNetworkTable = NetworkTableInstance.getDefault();
-        mScoringNetworkTable = mNetworkTable.getTable("automaticScoringPosition");
         mMotorNetworkTable = mNetworkTable.getTable("armMotorNetworkTable");
         mElevatorHeight = mMotorNetworkTable.getEntry("ElevatorHeight");
         mArmAngle = mMotorNetworkTable.getEntry("ArmAngle");
-        mSelectedScoringHeightEntry = mScoringNetworkTable.getEntry("scoringHeight");
-        mSelectedScoringSideEntry = mScoringNetworkTable.getEntry("scoringSide");
         mArmAngleTolCalc = mMotorNetworkTable.getEntry("giggity");
+        mQueuedState = mNetworkTable.getEntry("States");
+
     }
 
+
+    public Command SetQueuedState(CoralHandlerStateMachine.State stateToQueue){return this.run(() -> queuedState = stateToQueue);}
 
     public Command setHopperState(boolean isHopperIn) {
         return this.run(() -> {
@@ -283,7 +305,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmMotor.set(0);
     }
 
-    public Command runStatePath(List<CoralHandlerStateMachine.State> path) {
-        return coralHandlerStateMachine.runStatePath(path);
+    public Command runStatePath(List<State> states) {
+        return coralHandlerStateMachine.runStatePath(states);
     }
 }

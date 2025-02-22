@@ -76,10 +76,11 @@ public final class CTREConfigs {
         elevatorMotorFXConfig.Feedback.SensorToMechanismRatio = 52.17;
 
         elevatorMotorPIDConfig.GravityType = GravityTypeValue.Elevator_Static;
-        elevatorMotorPIDConfig.kP = 7.5;
+        elevatorMotorPIDConfig.kP = 5;
+        elevatorMotorPIDConfig.kS = 0.75;
         elevatorMotorPIDConfig.kI = 0.0;
         elevatorMotorPIDConfig.kD = 0.08;
-        elevatorMotorPIDConfig.kG = 1.0;
+        elevatorMotorPIDConfig.kG = 0.4;
 
         // ARM CONFIGURATION
 
@@ -93,6 +94,6 @@ public final class CTREConfigs {
         armMotorPIDConfig.kP = 24;
         armMotorPIDConfig.kI = 0.05;
         armMotorPIDConfig.kD = 0.1;
-        armMotorPIDConfig.kG = -2;
+        armMotorPIDConfig.kG = 0;
     }
 }
