@@ -243,6 +243,8 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     private CoralHandlerStateMachine coralHandlerStateMachine;
     public State getQueuedState() {return queuedState;}
+    public Command setQueuedState(State state) {return this.run(() -> {queuedState = state;});}
+    
     public State getCurrentState(){return currentState;}
 
     @Override
