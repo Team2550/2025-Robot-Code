@@ -6,6 +6,10 @@ import frc.robot.Constants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+
+import java.util.Arrays;
+import java.util.List;
+
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -17,7 +21,6 @@ import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,6 +32,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Swerve extends SubsystemBase {
@@ -36,10 +40,11 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
-    private PIDController xPid = new PIDController(0.5,0,0);
-    private PIDController yPid = new PIDController(0.5,0,0);
-    private PIDController rPid = new PIDController(0.5,0,0);
+    private PIDController xPid = new PIDController(Constants.AutoConstants.kPXController,0,0);
+    private PIDController yPid = new PIDController(Constants.AutoConstants.kPYController,0,0);
+    private PIDController rPid = new PIDController(Constants.AutoConstants.kPThetaController,0,0);
 
+    private Pose2d estimatedPose;
 
     private PhotonVision m_photonVision;
     private final SwerveDrivePoseEstimator m_PoseEstimator;
@@ -75,8 +80,8 @@ public class Swerve extends SubsystemBase {
                 this::getRobotRelativeSpeeds, 
                 this::driveRobotRelative, 
                 new PPHolonomicDriveController(
-                    new PIDConstants(5, 0, 0), 
-                    new PIDConstants(5, 0, 0)
+                    new PIDConstants(Constants.AutoConstants.kPXController, 0, 0), 
+                    new PIDConstants(Constants.AutoConstants.kPThetaController, 0, 0)
                 ),
                 config,
                 () -> {
@@ -100,7 +105,7 @@ public class Swerve extends SubsystemBase {
     /*Drive Function */
     private void driveRobotRelative (ChassisSpeeds speeds) {
         boolean fieldRelative = false;
-        //drive(new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), speeds.omegaRadiansPerSecond, false, false);
+
         SwerveModuleState[] swerveModuleStates =
             Constants.Swerve.swerveKinematics.toSwerveModuleStates(
                 fieldRelative ? speeds:speeds);
@@ -207,11 +212,41 @@ public class Swerve extends SubsystemBase {
         return xPid.atSetpoint() && yPid.atSetpoint() && rPid.atSetpoint();
     }
 
-    private Pose2d estimatedPose;
     private void setEstimatedPose(Pose2d pose) {
         this.estimatedPose = pose;
     }
 
+    public Command pathfindToClosestPoint() {
+        // Get the current estimated pose of the robot
+        Pose2d currentPose = getPose();
+
+        // Define your fixed target poses
+        List<Pose2d> targetPoses = Arrays.asList(
+            new Pose2d(new Translation2d(3.832, 5.138), Rotation2d.fromDegrees(-60)),     // Top Left
+            new Pose2d(new Translation2d(5.179, 5.122), Rotation2d.fromDegrees(-119.604)),  // Top Right
+            new Pose2d(new Translation2d(5.814, 4.017), Rotation2d.fromDegrees(180)),       // Right
+            new Pose2d(new Translation2d(5.162, 2.895), Rotation2d.fromDegrees(120)),       // Bottom Right
+            new Pose2d(new Translation2d(3.835, 2.887), Rotation2d.fromDegrees(60)),        // Bottom Left
+            new Pose2d(new Translation2d(3.150, 4.025), Rotation2d.fromDegrees(0))          // Left
+        );
+
+        Pose2d closestPose = targetPoses.get(0);
+        double minDistance = currentPose.getTranslation()
+                                .getDistance(closestPose.getTranslation());
+
+        for (Pose2d target : targetPoses) {
+            double distance = currentPose.getTranslation()
+                                .getDistance(target.getTranslation());
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPose = target;
+            }
+        }
+        
+        // Now return the command to pathfind to the closest pose
+        return pathfindCommand(closestPose);
+    }
+    
     //TODO: Replace with PhotonVision code
     public Command pathfindCommand(Pose2d target){
         
@@ -248,6 +283,23 @@ public class Swerve extends SubsystemBase {
         );
     }
 
+    public Command pidDriveToTarget(Pose2d target) {
+        return new RunCommand(() -> {
+            Pose2d currentPose = getPose();
+
+            // Calculate PID outputs for X, Y, and rotational errors
+            double xOutput = xPid.calculate(currentPose.getX(), target.getX());
+            double yOutput = yPid.calculate(currentPose.getY(), target.getY());
+            double rOutput = rPid.calculate(
+                currentPose.getRotation().getRadians(), 
+                target.getRotation().getRadians()
+            );
+
+            
+            drive(new Translation2d(xOutput, yOutput), rOutput, true, false);
+        }, this); 
+    }
+
     /*Vision Functions */
     public void updateVisionLocalization() {
         var visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraOneName);
@@ -267,5 +319,5 @@ public class Swerve extends SubsystemBase {
                 });
     }
 
-    public Pose2d getEstimatedPosition()
+    public Pose2d getEstimatedPosition(){return new Pose2d();}; 
 }
