@@ -113,8 +113,11 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
         //dr_LT_autoAlignButton.whileTrue(s_Swerve.pathfindCommand(null));
 
-        //dr_RT_moveCoralButton.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest,)));
-
+        dr_RT_moveCoralButton.onTrue(new InstantCommand(() -> 
+            s_CoralHandler.runStatePath(
+                CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(s_CoralHandler.getCurrentState(), s_CoralHandler.getQueuedState())
+                )
+            ));
         dr_Back_climbButton.whileTrue(s_Climber.RunMotor(false));
         dr_Back_climbButton.onFalse(s_Climber.StopMotor());
         dr_Start_unClimbButton.whileTrue(s_Climber.RunMotor(true));
