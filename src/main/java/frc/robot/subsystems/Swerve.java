@@ -207,6 +207,11 @@ public class Swerve extends SubsystemBase {
         return xPid.atSetpoint() && yPid.atSetpoint() && rPid.atSetpoint();
     }
 
+    private Pose2d estimatedPose;
+    private void setEstimatedPose(Pose2d pose) {
+        this.estimatedPose = pose;
+    }
+
     //TODO: Replace with PhotonVision code
     public Command pathfindCommand(Pose2d target){
         
@@ -220,16 +225,22 @@ public class Swerve extends SubsystemBase {
                 target,
                 constraints,
                 0.0 // Goal end velocity in meters/sec
-        );
+        );        
 
         //TODO: UNTESTED, POTENTIALLY DANGEROUS
         return pathfindingCommand.andThen(
             Commands.parallel(
                 Commands.run(() -> {
-                    Pose2d currentEstimatedPose = m_PoseEstimator.getEstimatedPosition();
-                    double xErr = xPid.calculate(currentEstimatedPose.getX(), target.getX());
-                    double yErr = yPid.calculate(currentEstimatedPose.getY(), target.getY());
-                    double rErr = rPid.calculate(currentEstimatedPose.getRotation().getRadians(), target.getRotation().getRadians());
+                    this.estimatedPose = m_PoseEstimator.getEstimatedPosition();
+                    var photonEstimatedPose = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraOneName);
+                    photonEstimatedPose.ifPresent(
+                        est -> {
+                            setEstimatedPose(est.estimatedPose.toPose2d());
+                        }
+                    );
+                    double xErr = xPid.calculate(estimatedPose.getX(), target.getX());
+                    double yErr = yPid.calculate(estimatedPose.getY(), target.getY());
+                    double rErr = rPid.calculate(estimatedPose.getRotation().getRadians(), target.getRotation().getRadians());
                     drive(new Translation2d(xErr, yErr), rErr, true, false);
                 }),
                 Commands.waitUntil(this::isAtPoseSetpoint)
@@ -255,4 +266,6 @@ public class Swerve extends SubsystemBase {
                             est.estimatedPose.toPose2d(), est.timestampSeconds);
                 });
     }
+
+    public Pose2d getEstimatedPosition()
 }

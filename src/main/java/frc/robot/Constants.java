@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Rotation;
+
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -49,7 +51,7 @@ public final class Constants {
     public static final class vision {
         public static final AprilTagFieldLayout kTagLayout = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
 
-        public static final String localizationCameraOneName = "limelight-camera";
+        public static final String localizationCameraOneName = "limelight-photon-camera";
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
                 new Translation3d(
                                 Units.inchesToMeters(0),
@@ -73,6 +75,18 @@ public final class Constants {
                 Rotation2d.fromDegrees(0).getRadians()));
         
         public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
+
+        public static final String localizationCameraThreeName = "UNSET";
+        public static final Transform3d localizationCameraThreeToRobot = new Transform3d(
+            new Translation3d(
+                            Units.inchesToMeters(0),
+                            Units.inchesToMeters(0),
+                            Units.inchesToMeters(0)),
+                new Rotation3d(0,
+                Rotation2d.fromDegrees(0).getRadians(),
+                Rotation2d.fromDegrees(0).getRadians()));
+
+        public static Matrix<N3, N1> localizationCameraThreeStdDev = VecBuilder.fill(0.1,0.1,0.5);
     }
 
     public static final class Swerve {

@@ -16,6 +16,9 @@ public class PhotonVision {
     private final PhotonCamera m_cameraTwo;
     private final PhotonPoseEstimator m_cameraTwoEstimator;
 
+    private final PhotonCamera m_cameraThree;
+    private final PhotonPoseEstimator m_cameraThreeEstimator;
+
     public PhotonVision(){
         m_cameraOne = new PhotonCamera(Constants.vision.localizationCameraOneName);
         m_cameraOneEstimator = new PhotonPoseEstimator(Constants.vision.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.vision.localizationCameraOneToRobot);
@@ -24,6 +27,9 @@ public class PhotonVision {
         m_cameraTwo = new PhotonCamera(Constants.vision.localizationCameraTwoName);
         m_cameraTwoEstimator = new PhotonPoseEstimator(Constants.vision.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.vision.localizationCameraOneToRobot);
         m_cameraTwoEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+
+        m_cameraThree = new PhotonCamera(Constants.vision.localizationCameraThreeName);
+        m_cameraThreeEstimator = new PhotonPoseEstimator(Constants.vision.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, Constants.vision.localizationCameraThreeToRobot);
 
     }
 

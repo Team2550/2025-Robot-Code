@@ -44,7 +44,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     public State queuedState;
     private State currentState;
-    
+
     private NetworkTableInstance mNetworkTable;
     private NetworkTable mMotorNetworkTable;
     private NetworkTableEntry mElevatorHeight;
@@ -67,9 +67,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
             CoralPickup1(0.05,-90, false),
             CoralPickup2(0.05,0, false),
             L1(0.05,-90, false),
-            L2(0.433,-41.484, false), // DISCOVERED
-            L3(0.05,-90, false),
-            L4(1.2,-25, false);
+            L2(0.111,-50.09, false), // DISCOVERED
+            L3(0.496,-50.44, false),
+            L4(1.207,-42.27, false);
     
             private double elevatorHeightMeters;
             private double armAngleDegrees;

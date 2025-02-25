@@ -130,6 +130,9 @@ public class RobotContainer {
         op_Y_l4Button.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L4)));
         op_Y_l4Button.onFalse(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.L4, State.Rest)));
         op_X_l3Button.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L3)));//op_A_l2Button.onTrue(s_CoralHandler.SetQueuedState(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(s_CoralHandler.getCurrentState(), State.L2)));
+        op_X_l3Button.onFalse(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.L3, State.Rest)));
+        op_A_l2Button.onTrue(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L2)));
+        op_A_l2Button.onFalse(s_CoralHandler.runStatePath(CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(State.L2, State.Rest)));
         //op_LB_ballIntakeButton.onTrue(); // LB
         op_LB_ballIntakeButton.onFalse(s_BallGrabber.StopMotor());
         op_LB_ballIntakeButton.whileTrue(s_BallGrabber.intakeCommand()); // LB
