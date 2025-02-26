@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import frc.robot.Constants;
 import frc.robot.Constants.grabConstants;
 
 import com.revrobotics.spark.SparkMax;
@@ -33,7 +34,7 @@ public class BallGrabberSubsystem extends SubsystemBase {
         return this.run(() -> {grabMotor.set(grabConstants.grabSpeed * (false ? 1 : -1)); mSolenoid.set(DoubleSolenoid.Value.kReverse);});
     }
 
-    public Command outtakeCommand (){
+    public Command expelCommand (){
         return this.run(() -> {grabMotor.stopMotor(); mSolenoid.set(DoubleSolenoid.Value.kForward);});
     }
 
@@ -65,5 +66,13 @@ public class BallGrabberSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
+    }
+
+    public void configureButtonBindings() {
+        Constants.Controls.Operator.LB_ballIntake.whileTrue(intakeCommand());
+        Constants.Controls.Operator.LB_ballIntake.onFalse(StopMotor());
+
+        Constants.Controls.Operator.RB_ballExpel.whileTrue(RunMotor(true));
+        Constants.Controls.Operator.RB_ballExpel.onFalse(expelCommand());
     }
 }

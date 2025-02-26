@@ -7,6 +7,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
+import static edu.wpi.first.units.Units.Rotation;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -216,18 +218,26 @@ public class Swerve extends SubsystemBase {
         this.estimatedPose = pose;
     }
 
+    private Translation2d pointOnRotatedAxis(Translation2d pos, Rotation2d rot) {
+        return pos.rotateBy(rot);
+    }
+
+    private Pose2d targetPose(double x, double y, double relX, double relY, Rotation2d rot) {
+        return new Pose2d(new Translation2d(x, y).plus(new Translation2d(relX, relY).rotateBy(rot)), rot);
+    }
+
     public Command pathfindToClosestPoint() {
         // Get the current estimated pose of the robot
         Pose2d currentPose = getPose();
 
         // Define your fixed target poses
         List<Pose2d> targetPoses = Arrays.asList(
-            new Pose2d(new Translation2d(3.832, 5.138), Rotation2d.fromDegrees(-60)),     // Top Left
-            new Pose2d(new Translation2d(5.179, 5.122), Rotation2d.fromDegrees(-119.604)),  // Top Right
-            new Pose2d(new Translation2d(5.814, 4.017), Rotation2d.fromDegrees(180)),       // Right
-            new Pose2d(new Translation2d(5.162, 2.895), Rotation2d.fromDegrees(120)),       // Bottom Right
-            new Pose2d(new Translation2d(3.835, 2.887), Rotation2d.fromDegrees(60)),        // Bottom Left
-            new Pose2d(new Translation2d(3.150, 4.025), Rotation2d.fromDegrees(0))          // Left
+            targetPose(3.832, 5.138, -1, 0, Rotation2d.fromDegrees(-60)),  // Top Left
+            targetPose(5.179, 5.122, 0, 0, Rotation2d.fromDegrees(-120)), // Top Right
+            targetPose(5.814, 4.017, 0, 0, Rotation2d.fromDegrees(180)), // Right
+            targetPose(5.162, 2.895, 0, 0, Rotation2d.fromDegrees(120)), // Bottom Right
+            targetPose(3.835, 2.887, 0, 0, Rotation2d.fromDegrees(60)), // Bottom Left
+            targetPose(3.150, 4.025, 0, 0, Rotation2d.fromDegrees(0)) // Left
         );
 
         Pose2d closestPose = targetPoses.get(0);

@@ -20,6 +20,10 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.util.COTSTalonFXSwerveConstants;
 import frc.lib.util.SwerveModuleConstants;
 
@@ -51,38 +55,38 @@ public final class Constants {
     public static final class vision {
         public static final AprilTagFieldLayout kTagLayout = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
 
-        public static final String localizationCameraOneName = "limelight-photon-camera";
+        public static final String localizationCameraOneName = "limelight-forward-camera";
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
-                new Translation3d(
-                                Units.inchesToMeters(0),
-                                Units.inchesToMeters(0),
-                                Units.inchesToMeters(0)),
-                new Rotation3d(0, 
+            new Translation3d(
+                Units.inchesToMeters(0),
+                Units.inchesToMeters(0),
+                Units.inchesToMeters(0)),
+            new Rotation3d(0, 
                 Rotation2d.fromDegrees(0).getRadians(), 
                 Rotation2d.fromDegrees(0).getRadians()));
         
         public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
 
 
-        public static final String localizationCameraTwoName = "Front_Right_Camera";
+        public static final String localizationCameraTwoName = "coral-side-camera";
         public static final Transform3d localizationCameraTwoToRobot = new Transform3d(
-                new Translation3d(
-                                Units.inchesToMeters(0),
-                                Units.inchesToMeters(0),
-                                Units.inchesToMeters(0)),
-                new Rotation3d(0, 
+            new Translation3d(
+                Units.inchesToMeters(0),
+                Units.inchesToMeters(0),
+                Units.inchesToMeters(0)),
+            new Rotation3d(0, 
                 Rotation2d.fromDegrees(0).getRadians(), 
                 Rotation2d.fromDegrees(0).getRadians()));
         
         public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
 
-        public static final String localizationCameraThreeName = "UNSET";
+        public static final String localizationCameraThreeName = "algae-side-camera";
         public static final Transform3d localizationCameraThreeToRobot = new Transform3d(
             new Translation3d(
-                            Units.inchesToMeters(0),
-                            Units.inchesToMeters(0),
-                            Units.inchesToMeters(0)),
-                new Rotation3d(0,
+                Units.inchesToMeters(0),
+                Units.inchesToMeters(0),
+                Units.inchesToMeters(0)),
+            new Rotation3d(0,
                 Rotation2d.fromDegrees(0).getRadians(),
                 Rotation2d.fromDegrees(0).getRadians()));
 
@@ -248,5 +252,33 @@ public final class Constants {
         public static final int coralArmMotorID = -1;
 
         public static final double elevatorGearRatio = 63.5;
+    }
+
+    public static final class Controls {
+        public static final class Driver {
+            public static final Joystick driverJoystick = new Joystick(0);
+
+            public static final Trigger LT_autoAlign = new Trigger(() -> driverJoystick.getRawAxis(XboxController.Axis.kLeftTrigger.value) > 0.7);
+            public static final Trigger RT_scoringAction = new Trigger(() -> driverJoystick.getRawAxis(XboxController.Axis.kRightTrigger.value) > 0.7);
+
+            public static final JoystickButton Y_zeroGyro = new JoystickButton(driverJoystick, XboxController.Button.kY.value);
+            public static final JoystickButton BACK_climb = new JoystickButton(driverJoystick, XboxController.Button.kBack.value);
+            public static final JoystickButton START_unClimb = new JoystickButton(driverJoystick, XboxController.Button.kStart.value);
+            public static final JoystickButton X_openCoralGrabber = new JoystickButton(driverJoystick, XboxController.Button.kX.value);
+
+        }
+
+        public static final class Operator {
+            public static final Joystick operatorJoystick = new Joystick(1);
+
+            public static final JoystickButton LB_ballIntake = new JoystickButton(operatorJoystick, XboxController.Button.kLeftBumper.value);
+            public static final JoystickButton RB_ballExpel = new JoystickButton(operatorJoystick, XboxController.Button.kRightBumper.value);
+            public static final JoystickButton BACK_climberLatch = new JoystickButton(operatorJoystick, XboxController.Button.kBack.value);
+            public static final JoystickButton START_climberUnLatch = new JoystickButton(operatorJoystick, XboxController.Button.kStart.value);
+
+            public static final JoystickButton A_l2 = new JoystickButton(operatorJoystick, XboxController.Button.kA.value);
+            public static final JoystickButton X_l3 = new JoystickButton(operatorJoystick, XboxController.Button.kX.value);
+            public static final JoystickButton Y_l4 = new JoystickButton(operatorJoystick, XboxController.Button.kY.value);
+        }
     }
 }

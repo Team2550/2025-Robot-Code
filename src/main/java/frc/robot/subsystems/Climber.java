@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.ClimbConstants;
 
 public class Climber extends SubsystemBase
@@ -61,5 +62,15 @@ public class Climber extends SubsystemBase
     public void Stop()
     {
         m_climbMotor.stopMotor();
+    }
+
+    public void configureButtonBindings() {
+        Constants.Controls.Driver.BACK_climb.whileTrue(RunMotor(false));
+        Constants.Controls.Driver.BACK_climb.onFalse(StopMotor());
+        Constants.Controls.Driver.START_unClimb.whileTrue(RunMotor(true));
+        Constants.Controls.Driver.START_unClimb.onFalse(StopMotor());
+        
+        Constants.Controls.Operator.BACK_climberLatch.onTrue(ControlPneumatics(true));
+        Constants.Controls.Operator.START_climberUnLatch.onTrue(ControlPneumatics(false));
     }
 }

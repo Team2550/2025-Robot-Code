@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -32,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.math.Conversions;
+import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
 
@@ -161,6 +163,10 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                 return path.size() > 2 ? path.subList(1, path.size() - 1) : Collections.emptyList();
             }
     
+            public static List<State> findPath(Supplier<State> start, Supplier<State> end) {
+                return findPath(start.get(), end.get());
+            }
+
             // Run a breadth first search to find the correct path
             public static List<State> findPath(State start, State end) {
                 Queue<List<State>> queue = new LinkedList<>();
@@ -291,7 +297,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmRequest = new PositionVoltage(90).withSlot(0);
 
         mHopperSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
-        mCoralGrabberSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1); //TODO: THIS DOES NOT WORK!!!!
+        mCoralGrabberSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
 
         mNetworkTable = NetworkTableInstance.getDefault();
         mMotorNetworkTable = mNetworkTable.getTable("armMotorNetworkTable");
@@ -334,5 +340,25 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     public Command runStatePath(List<State> states) {
         return coralHandlerStateMachine.runStatePath(states);
+    }
+
+    public void configureButtonBindings() {
+        Constants.Controls.Driver.RT_scoringAction.onTrue(
+            runStatePath(
+                CoralHandlerSubsystem.CoralHandlerStateMachine.StateTransitionPath.findPath(this::getCurrentState, this::getQueuedState)
+            )
+        );
+
+        Constants.Controls.Driver.X_openCoralGrabber.onTrue(setCoralGrabberState(true));
+        Constants.Controls.Driver.X_openCoralGrabber.onFalse(setCoralGrabberState(false));
+        
+        Constants.Controls.Operator.Y_l4.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L4)));
+        Constants.Controls.Operator.Y_l4.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.L4, State.Rest)));
+
+        Constants.Controls.Operator.X_l3.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L3)));
+        Constants.Controls.Operator.X_l3.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.L3, State.Rest)));
+
+        Constants.Controls.Operator.A_l2.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L2)));
+        Constants.Controls.Operator.A_l2.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.L2, State.Rest)));
     }
 }
