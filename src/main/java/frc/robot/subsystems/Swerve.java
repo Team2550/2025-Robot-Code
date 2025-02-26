@@ -232,12 +232,21 @@ public class Swerve extends SubsystemBase {
 
         // Define your fixed target poses
         List<Pose2d> targetPoses = Arrays.asList(
-            targetPose(3.832, 5.138, -1, 0, Rotation2d.fromDegrees(-60)),  // Top Left
-            targetPose(5.179, 5.122, 0, 0, Rotation2d.fromDegrees(-120)), // Top Right
-            targetPose(5.814, 4.017, 0, 0, Rotation2d.fromDegrees(180)), // Right
-            targetPose(5.162, 2.895, 0, 0, Rotation2d.fromDegrees(120)), // Bottom Right
-            targetPose(3.835, 2.887, 0, 0, Rotation2d.fromDegrees(60)), // Bottom Left
-            targetPose(3.150, 4.025, 0, 0, Rotation2d.fromDegrees(0)) // Left
+            new Pose2d(3.832, 5.138, Rotation2d.fromDegrees(-60)),  // Top Left
+            new Pose2d(5.179, 5.122, Rotation2d.fromDegrees(-120)), // Top Right
+            new Pose2d(5.814, 4.017, Rotation2d.fromDegrees(180)), // Right
+            new Pose2d(5.162, 2.895, Rotation2d.fromDegrees(120)), // Bottom Right
+            new Pose2d(3.835, 2.887, Rotation2d.fromDegrees(60)), // Bottom Left
+            new Pose2d(3.150, 4.025, Rotation2d.fromDegrees(0)) // Left
+        );
+
+        List<Pose2d> offsetPoses = Arrays.asList(
+            new Pose2d(1, 0, Rotation2d.fromDegrees(0)), //Left Pole L2 and, L3
+            new Pose2d(1, -0.5, Rotation2d.fromDegrees(0)), //Left Pole L4
+            
+            new Pose2d(-1, 0, Rotation2d.fromDegrees(0)), //Right Pole L2 and, L3
+            new Pose2d(-1, -0.5, Rotation2d.fromDegrees(0)) //Right Pole L4
+
         );
 
         Pose2d closestPose = targetPoses.get(0);

@@ -26,6 +26,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -65,9 +66,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     public class CoralHandlerStateMachine {
         public enum State
         {
-            Rest(0.05,-90, false), // DISCOVERED
-            CoralPickup1(0.05,-90, false),
-            CoralPickup2(0.05,0, false),
+            Rest(0.4,-90, false), // DISCOVERED
+            CoralPickup1(1.15,90, false),
+            CoralPickup2(0.806884765625,90, false),
             L1(0.05,-90, false),
             L2(0.111,-50.09, false), // DISCOVERED
             L3(0.496,-50.44, false),
@@ -216,6 +217,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         double elevatorHeightMeters = inter.elevatorHeightMeters;
         if(inter == State.Rest){
             return Commands.sequence(
+                this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kForward);}),
                 // Move the arm to the desired position
                 this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()))),
                 // Wait until the arm is within tolerance
@@ -227,10 +229,45 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                 // Move the elevator to the desired height
                 this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
                 // Wait until the elevator is within tolerance
-                Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - elevatorHeightMeters) < 0.07)
+                Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - elevatorHeightMeters) < 0.07), 
+
+                this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kReverse);})
             ); 
+        }else if (inter == State.L2){
+            return Commands.sequence(
+                this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kForward);}),
+                // Move the elevator to the desired height
+                this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
+                // Wait until the elevator is within tolerance
+                Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - elevatorHeightMeters) < 0.035),
+        
+                // Move the arm to the desired position
+                this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()))),
+                // Wait until the arm is within tolerance
+                Commands.waitUntil(() -> 
+                    Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
+                    Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
+                )
+            );
+        }else if (inter == State.CoralPickup1 || inter == State.CoralPickup2){
+            return Commands.sequence(
+                this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kReverse);}),
+                // Move the elevator to the desired height
+                this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
+                // Wait until the elevator is within tolerance
+                Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - elevatorHeightMeters) < 0.035),
+        
+                // Move the arm to the desired position
+                this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()))),
+                // Wait until the arm is within tolerance
+                Commands.waitUntil(() -> 
+                    Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
+                    Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
+                )
+            );
         }else{
             return Commands.sequence(
+            this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kForward);}),
             // Move the elevator to the desired height
             this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(elevatorHeightMeters))),
             // Wait until the elevator is within tolerance
@@ -242,7 +279,10 @@ public class CoralHandlerSubsystem extends SubsystemBase {
             Commands.waitUntil(() -> 
                 Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
                 Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
-            )
+            ), 
+
+            this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kReverse);})
+            
         ); }
     }
     
@@ -352,6 +392,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         Constants.Controls.Driver.X_openCoralGrabber.onTrue(setCoralGrabberState(true));
         Constants.Controls.Driver.X_openCoralGrabber.onFalse(setCoralGrabberState(false));
         
+        Constants.Controls.Operator.B_load.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.CoralPickup2)));
+        Constants.Controls.Operator.B_load.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.CoralPickup2, State.Rest)));
+
         Constants.Controls.Operator.Y_l4.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L4)));
         Constants.Controls.Operator.Y_l4.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.L4, State.Rest)));
 

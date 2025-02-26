@@ -279,6 +279,7 @@ public final class Constants {
             public static final JoystickButton A_l2 = new JoystickButton(operatorJoystick, XboxController.Button.kA.value);
             public static final JoystickButton X_l3 = new JoystickButton(operatorJoystick, XboxController.Button.kX.value);
             public static final JoystickButton Y_l4 = new JoystickButton(operatorJoystick, XboxController.Button.kY.value);
+            public static final JoystickButton B_load = new JoystickButton(operatorJoystick, XboxController.Button.kB.value);
         }
     }
 }
