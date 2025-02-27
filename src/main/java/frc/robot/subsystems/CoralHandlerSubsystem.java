@@ -66,11 +66,11 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     public class CoralHandlerStateMachine {
         public enum State
         {
-            Rest(0.4,-90, false), // DISCOVERED
+            Rest(0.4,-90, false),
             CoralPickup1(1.15,90, false),
-            CoralPickup2(0.806884765625,90, false),
+            CoralPickup2(0.806884765625,90, false), //0.806884765625
             L1(0.05,-90, false),
-            L2(0.111,-50.09, false), // DISCOVERED
+            L2(0.111,-50.09, false),
             L3(0.496,-50.44, false),
             L4(1.207,-42.27, false);
     
@@ -211,11 +211,11 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     Rotation2d arm = new Rotation2d(-90 * (Math.PI/180), 0);
 
-    private Command setElevatorAndArm(State inter) {
-        Rotation2d armRotation2d = new Rotation2d(inter.armAngleDegrees * (Math.PI/180));
+    private Command setElevatorAndArm(State state) {
+        Rotation2d armRotation2d = new Rotation2d(state.armAngleDegrees * (Math.PI/180));
         arm = armRotation2d;
-        double elevatorHeightMeters = inter.elevatorHeightMeters;
-        if(inter == State.Rest){
+        double elevatorHeightMeters = state.elevatorHeightMeters;
+        if(state == State.Rest){
             return Commands.sequence(
                 this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kForward);}),
                 // Move the arm to the desired position
@@ -233,7 +233,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
                 this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kReverse);})
             ); 
-        }else if (inter == State.L2){
+        }else if (state == State.L2){
             return Commands.sequence(
                 this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kForward);}),
                 // Move the elevator to the desired height
@@ -249,7 +249,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                     Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2d.getRotations()) < 0.15
                 )
             );
-        }else if (inter == State.CoralPickup1 || inter == State.CoralPickup2){
+        }else if (state == State.CoralPickup1){
             return Commands.sequence(
                 this.runOnce(() -> {mHopperSolenoid.set(DoubleSolenoid.Value.kReverse);}),
                 // Move the elevator to the desired height
@@ -346,6 +346,42 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmAngleTolCalc = mMotorNetworkTable.getEntry("giggity");
     }
 
+    public Command pickupSequence() {
+        Rotation2d armRotation2dCoral1 = new Rotation2d(State.CoralPickup1.armAngleDegrees * (Math.PI/180));
+        Rotation2d armRotation2dRest = new Rotation2d(State.Rest.armAngleDegrees * (Math.PI/180));
+        return Commands.sequence(
+
+            // Move arm up and point it down
+            this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.CoralPickup1.elevatorHeightMeters))),
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup1.elevatorHeightMeters) < 0.035),
+            this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2dCoral1.getRotations()))),
+            Commands.waitUntil(() -> 
+                Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
+                Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2dCoral1.getRotations()) < 0.15
+            ),
+
+            // Move the arm down to pickup position
+            setCoralGrabberState(true),
+            this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.CoralPickup2.elevatorHeightMeters))),
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup2.elevatorHeightMeters) < 0.005),
+
+            // Grab and clear
+            setCoralGrabberState(false),
+            this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.CoralPickup1.elevatorHeightMeters))),
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup1.elevatorHeightMeters) < 0.035),
+            
+            // Go back to rest
+            this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2dRest.getRotations()))),
+            Commands.waitUntil(() -> 
+                Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
+                Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2dRest.getRotations()) < 0.15
+            ),
+            this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.Rest.elevatorHeightMeters))),
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.Rest.elevatorHeightMeters) < 0.035)
+
+        );
+    }
+
     public Command runSysIdQuasistatic(Direction direction) {
         return sysId.quasistatic(direction);
     }
@@ -392,8 +428,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         Constants.Controls.Driver.X_openCoralGrabber.onTrue(setCoralGrabberState(true));
         Constants.Controls.Driver.X_openCoralGrabber.onFalse(setCoralGrabberState(false));
         
-        Constants.Controls.Operator.B_load.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.CoralPickup2)));
-        Constants.Controls.Operator.B_load.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.CoralPickup2, State.Rest)));
+        // Constants.Controls.Operator.B_load.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.CoralPickup2)));
+        // Constants.Controls.Operator.B_load.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.CoralPickup2, State.Rest)));
+        Constants.Controls.Operator.B_load.onTrue(pickupSequence());
 
         Constants.Controls.Operator.Y_l4.onTrue(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.Rest, State.L4)));
         Constants.Controls.Operator.Y_l4.onFalse(runStatePath(CoralHandlerStateMachine.StateTransitionPath.findPath(State.L4, State.Rest)));
