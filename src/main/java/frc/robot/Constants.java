@@ -1,7 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Rotation;
-
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;

@@ -68,7 +68,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         {
             Rest(0.4,-90, false),
             CoralPickup1(1.15,90, false),
-            CoralPickup2(0.806884765625,90, false), //0.806884765625
+            CoralPickup2(0.85,90, false), //0.7939453125
             L1(0.05,-90, false),
             L2(0.111,-50.09, false),
             L3(0.496,-50.44, false),
@@ -353,23 +353,32 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
             // Move arm up and point it down
             this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.CoralPickup1.elevatorHeightMeters))),
-            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup1.elevatorHeightMeters) < 0.035),
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup1.elevatorHeightMeters) < 0.035), //            
             this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2dCoral1.getRotations()))),
+            
             Commands.waitUntil(() -> 
-                Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.1 &&
-                Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2dCoral1.getRotations()) < 0.15
+                Math.abs(mArmMotor.getVelocity().getValueAsDouble()) < 0.01 &&
+                Math.abs(mArmMotor.getPosition().getValueAsDouble() - armRotation2dCoral1.getRotations()) < 0.0025
             ),
 
             // Move the arm down to pickup position
             setCoralGrabberState(true),
+
             this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.CoralPickup2.elevatorHeightMeters))),
             Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup2.elevatorHeightMeters) < 0.005),
+            
+            //Actually Pickup Coral 
+            this.runOnce(() -> {mArmMotor.set(0);}),
+            this.runOnce(() -> {mElevatorMotor.set(-0.05);}),
+            Commands.waitSeconds(2),
 
+            //this.runOnce(() -> {mElevatorMotor.set(0);}),
             // Grab and clear
             setCoralGrabberState(false),
+            Commands.waitSeconds(0.25),
+
             this.runOnce(() -> mElevatorMotor.setControl(mElevatorRequest.withPosition(State.CoralPickup1.elevatorHeightMeters))),
-            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup1.elevatorHeightMeters) < 0.035),
-            
+            Commands.waitUntil(() -> Math.abs(mElevatorMotor.getPosition().getValueAsDouble() - State.CoralPickup1.elevatorHeightMeters) < 0.04), //0.035            
             // Go back to rest
             this.runOnce(() -> mArmMotor.setControl(mArmRequest.withPosition(armRotation2dRest.getRotations()))),
             Commands.waitUntil(() -> 
@@ -398,8 +407,8 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     }
 
     public Command setCoralGrabberState(boolean isOpen) {
-        return this.run(() -> {
-            mCoralGrabberSolenoid.set(isOpen ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+        return this.runOnce(() -> {
+            mCoralGrabberSolenoid.set(isOpen ? DoubleSolenoid.Value.kReverse : DoubleSolenoid.Value.kForward);
         });
     }
     
