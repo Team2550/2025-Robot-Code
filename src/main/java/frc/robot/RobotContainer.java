@@ -2,13 +2,16 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.TeleopCoral;
 import frc.robot.commands.TeleopSwerve;
@@ -17,6 +20,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CoralHandlerSubsystem;
 import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
 
 public class RobotContainer {
     private Compressor mCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
@@ -87,7 +91,12 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
         // return new PathPlannerAuto("New Auto");
-        return autoChooser.getSelected();
-        // return null;
+
+        return new SequentialCommandGroup(
+        //     s_CoralHandler.setElevatorAndArm(State.LPOS),
+             new TeleopSwerve(s_Swerve, () -> -0.75, () -> 0, () -> 0, () -> 0, () -> false).withTimeout(0.5),  
+             new TeleopSwerve(s_Swerve, () -> 0.75, () -> 0, () -> 0, () -> 0, () -> false).withTimeout(0.25));
+
+        //return null;
     }
 }

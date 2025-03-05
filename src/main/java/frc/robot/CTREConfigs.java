@@ -90,7 +90,8 @@ public final class CTREConfigs {
         armMotorFXConfig.Feedback.SensorToMechanismRatio = 62.5;
 
         armMotorPIDConfig.GravityType = GravityTypeValue.Arm_Cosine;
-        armMotorPIDConfig.kP = 50;
+        armMotorPIDConfig.kP = 20;
+        armMotorPIDConfig.kS = 5.0;
         //armMotorPIDConfig.kI = 0.05;
         //armMotorPIDConfig.kD = 0.1;
         //armMotorPIDConfig.kG = -2;

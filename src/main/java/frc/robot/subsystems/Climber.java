@@ -29,11 +29,20 @@ public class Climber extends SubsystemBase
     @Override
     public void periodic(){}
 
+    private boolean hasUnspooledClimber = false;
+
     public Command RunMotor(boolean reverse)
     {
-        return this.run(()->{
-            m_climbMotor.set(ClimbConstants.climbSpeed * (reverse ? -1 : 1)); 
-        });
+        if (reverse == false) {
+            hasUnspooledClimber = true;
+        }
+
+        if (hasUnspooledClimber) {
+            return this.run(()->{
+                m_climbMotor.set(ClimbConstants.climbSpeed * (reverse ? -1 : 1)); 
+            });
+        }
+        return null;
     }
 
     public Command StopMotor()
