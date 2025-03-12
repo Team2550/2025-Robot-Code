@@ -47,9 +47,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         Rest(   0.1,     0,    -90,    0),
         Intake( 1.08,  0.65, -248,   0),
         L1(     0.1,   0.05, -73.12, -53.08),
-        L2(     0.111, 0.05, -73.12, -53.08),
-        L3(     0.496, 0.3,  -74.70, -53.34),
-        L4(     1.270, 0.75, -71.28, -54.23);
+        L2(     0.309, 0.05, -73.12, -53.08),
+        L3(     0.732, 0.3,  -74.70, -53.34),
+        L4(     1.295, 0.75, -71.28, -54.23);
 
         double elevatorHeightMeters;
         double safeArmRotationHeightThresholdMeters;
@@ -94,7 +94,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     private Command score() {
 
         return Commands.sequence(
-            Commands.waitSeconds(0.5),
             this.runOnce(() -> {
                 if (currentState != State.Intake && currentState != State.Rest) {
 
@@ -105,6 +104,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
                 }
             }),
 
+            Commands.waitSeconds(0.4),
+
+
             this.runOnce(() -> {
                 mCoralGrabberSolenoid.set(DoubleSolenoid.Value.kForward);
             }),
@@ -113,7 +115,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
             this.runOnce(() -> {
                 if (currentState != State.Intake && currentState != State.Rest) {
 
-                    Rotation2d armRotation2d = new Rotation2d(currentState.readyAngleDegrees * (Math.PI/180));
+                    Rotation2d armRotation2d = new Rotation2d(-90 * (Math.PI/180));
 
                     mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations()));
                     // Open the actuator
