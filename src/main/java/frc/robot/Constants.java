@@ -1,7 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Rotation;
-
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -55,7 +53,7 @@ public final class Constants {
     public static final class vision {
         public static final AprilTagFieldLayout kTagLayout = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
 
-        public static final String localizationCameraOneName = "limelight-forward-camera";
+        public static final String localizationCameraOneName = "Camera_Module_v1";
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
             new Translation3d(
                 Units.inchesToMeters(0),
@@ -264,7 +262,7 @@ public final class Constants {
             public static final JoystickButton Y_zeroGyro = new JoystickButton(driverJoystick, XboxController.Button.kY.value);
             public static final JoystickButton BACK_climb = new JoystickButton(driverJoystick, XboxController.Button.kBack.value);
             public static final JoystickButton START_unClimb = new JoystickButton(driverJoystick, XboxController.Button.kStart.value);
-            public static final JoystickButton X_openCoralGrabber = new JoystickButton(driverJoystick, XboxController.Button.kX.value);
+            public static final JoystickButton X_score = new JoystickButton(driverJoystick, XboxController.Button.kX.value);
 
         }
 
@@ -280,6 +278,8 @@ public final class Constants {
             public static final JoystickButton X_l3 = new JoystickButton(operatorJoystick, XboxController.Button.kX.value);
             public static final JoystickButton Y_l4 = new JoystickButton(operatorJoystick, XboxController.Button.kY.value);
             public static final JoystickButton B_load = new JoystickButton(operatorJoystick, XboxController.Button.kB.value);
+
+            public static final JoystickButton RB_cancelScore = new JoystickButton(operatorJoystick, XboxController.Button.kRightBumper.value);
         }
     }
 }

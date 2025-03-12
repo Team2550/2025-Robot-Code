@@ -1,25 +1,15 @@
 package frc.robot.subsystems;
 
-import frc.robot.SwerveModule;
-import frc.robot.Constants;
-
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-
-import static edu.wpi.first.units.Units.Rotation;
-
 import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathConstraints;
-
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
@@ -27,6 +17,9 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -36,6 +29,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.SwerveModule;
 
 public class Swerve extends SubsystemBase {
     public SwerveModule[] mSwerveMods;
@@ -329,13 +324,13 @@ public class Swerve extends SubsystemBase {
                             est.estimatedPose.toPose2d(), est.timestampSeconds);
                 });
 
-        visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraTwoName);
-        visionEst.ifPresent(
-                est -> {
-                    m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraTwoStdDev);
-                    m_PoseEstimator.addVisionMeasurement(
-                            est.estimatedPose.toPose2d(), est.timestampSeconds);
-                });
+        // visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraTwoName);
+        // visionEst.ifPresent(
+        //         est -> {
+        //             m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraTwoStdDev);
+        //             m_PoseEstimator.addVisionMeasurement(
+        //                     est.estimatedPose.toPose2d(), est.timestampSeconds);
+        //         });
     }
 
     public Pose2d getEstimatedPosition(){return new Pose2d();}; 
