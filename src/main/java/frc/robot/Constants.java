@@ -56,9 +56,9 @@ public final class Constants {
         public static final String localizationCameraOneName = "Camera_Module_v1";
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
             new Translation3d(
-                Units.inchesToMeters(0),
-                Units.inchesToMeters(0),
-                Units.inchesToMeters(0)),
+                Units.inchesToMeters(-3), //14in left of center
+                Units.inchesToMeters(14), //3in behind center
+                Units.inchesToMeters(12)), //12in high
             new Rotation3d(0, 
                 Rotation2d.fromDegrees(0).getRadians(), 
                 Rotation2d.fromDegrees(0).getRadians()));
@@ -81,9 +81,9 @@ public final class Constants {
         public static final String localizationCameraThreeName = "algae-side-camera";
         public static final Transform3d localizationCameraThreeToRobot = new Transform3d(
             new Translation3d(
-                Units.inchesToMeters(0),
-                Units.inchesToMeters(0),
-                Units.inchesToMeters(0)),
+                Units.inchesToMeters(14),
+                Units.inchesToMeters(-3),
+                Units.inchesToMeters(12)),
             new Rotation3d(0,
                 Rotation2d.fromDegrees(0).getRadians(),
                 Rotation2d.fromDegrees(0).getRadians()));

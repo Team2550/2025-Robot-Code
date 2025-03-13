@@ -231,7 +231,7 @@ public class Swerve extends SubsystemBase {
             new Pose2d(5.179, 5.122, Rotation2d.fromDegrees(-120)), // Top Right
             new Pose2d(5.814, 4.017, Rotation2d.fromDegrees(180)), // Right
             new Pose2d(5.162, 2.895, Rotation2d.fromDegrees(120)), // Bottom Right
-            new Pose2d(3.835, 2.887, Rotation2d.fromDegrees(60)), // Bottom Left
+            //new Pose2d(3.835, 2.887, Rotation2d.fromDegrees(60)), // Bottom Left
             new Pose2d(3.150, 4.025, Rotation2d.fromDegrees(0)) // Left
         );
 
@@ -298,7 +298,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command pidDriveToTarget(Pose2d target) {
-        return this.runOnce(()-> {
+        return this.run(()-> {
             Pose2d currentPose = getPose();
 
             double xOutput = xPid.calculate(currentPose.getX(), target.getX());
@@ -308,8 +308,11 @@ public class Swerve extends SubsystemBase {
                 target.getRotation().getRadians()
             );
 
+            if(Math.abs(xOutput)<0.05){xOutput=0;}
+            if(Math.abs(yOutput)<0.05){yOutput=0;}
+            if(Math.abs(rOutput)<0.025){rOutput=0;}
             
-            drive(new Translation2d(xOutput, yOutput), rOutput, true, false);
+            drive(new Translation2d(xOutput*0.5, yOutput*0.5), rOutput*0.5, true, false);
         }); 
     }
 
