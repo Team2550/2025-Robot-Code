@@ -37,9 +37,9 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
-    private PIDController xPid = new PIDController(Constants.AutoConstants.kPXController,0,0);
-    private PIDController yPid = new PIDController(Constants.AutoConstants.kPYController,0,0);
-    private PIDController rPid = new PIDController(Constants.AutoConstants.kPThetaController,0,0);
+    private PIDController xPid = new PIDController(Constants.AutoConstants.kPXController,0,0); 
+    private PIDController yPid = new PIDController(Constants.AutoConstants.kPYController,0,0); 
+    private PIDController rPid = new PIDController(Constants.AutoConstants.kPThetaController,0,0); 
 
     private Pose2d estimatedPose;
 
@@ -258,7 +258,7 @@ public class Swerve extends SubsystemBase {
         }
         
         // Now return the command to pathfind to the closest pose
-        return pathfindCommand(closestPose);
+        return pidDriveToTarget(closestPose);
     }
     
     //TODO: Replace with PhotonVision code
@@ -298,10 +298,9 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command pidDriveToTarget(Pose2d target) {
-        return new RunCommand(() -> {
+        return this.runOnce(()-> {
             Pose2d currentPose = getPose();
 
-            // Calculate PID outputs for X, Y, and rotational errors
             double xOutput = xPid.calculate(currentPose.getX(), target.getX());
             double yOutput = yPid.calculate(currentPose.getY(), target.getY());
             double rOutput = rPid.calculate(
@@ -311,7 +310,7 @@ public class Swerve extends SubsystemBase {
 
             
             drive(new Translation2d(xOutput, yOutput), rOutput, true, false);
-        }, this); 
+        }); 
     }
 
     /*Vision Functions */

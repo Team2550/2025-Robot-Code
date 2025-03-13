@@ -71,6 +71,7 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
             zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
+        Constants.Controls.Driver.LT_autoAlign.whileTrue(s_Swerve.pathfindToClosestPoint());
 
         s_CoralHandler.configureButtonBindings();
         s_BallGrabber.configureButtonBindings();
