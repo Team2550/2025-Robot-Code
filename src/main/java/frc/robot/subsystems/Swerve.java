@@ -288,11 +288,11 @@ public class Swerve extends SubsystemBase {
     );
 
     List<Translation2d> offsetPoses = Arrays.asList(
-        new Translation2d(-0.18415, 0), //Left Pole L2 and, L3
-        new Translation2d(-0.18415, -0.5), //Left Pole L4
+        new Translation2d(0, 0.18415), //Left Pole L2 and, L3
+        new Translation2d(-0.5, 0.18415), //Left Pole L4
         
-        new Translation2d(0.18415, 0), //Right Pole L2 and, L3
-        new Translation2d(0.18415, -0.5) //Right Pole L4
+        new Translation2d(0, -0.18415), //Right Pole L2 and, L3
+        new Translation2d(-0.5, -0.18415) //Right Pole L4
     );
 
     // public Command pathfindToClosestPoint() {
@@ -338,13 +338,13 @@ public class Swerve extends SubsystemBase {
             }
 
             if(!scoringPositionIsL4 && scoringPositionIsLeft){
-                closestPose.transformBy(new Transform2d(offsetPoses.get(0), new Rotation2d()));
+                closestPose = closestPose.transformBy(new Transform2d(offsetPoses.get(0), new Rotation2d()));
             }else if(scoringPositionIsL4 && scoringPositionIsLeft){
-                closestPose.transformBy(new Transform2d(offsetPoses.get(1), new Rotation2d()));
+                closestPose = closestPose.transformBy(new Transform2d(offsetPoses.get(1), new Rotation2d()));
             }else if(!scoringPositionIsL4 && !scoringPositionIsLeft){
-                closestPose.transformBy(new Transform2d(offsetPoses.get(2), new Rotation2d()));
+                closestPose = closestPose.transformBy(new Transform2d(offsetPoses.get(2), new Rotation2d()));
             }else if(scoringPositionIsL4 && !scoringPositionIsLeft){
-                closestPose.transformBy(new Transform2d(offsetPoses.get(3), new Rotation2d()));
+                closestPose = closestPose.transformBy(new Transform2d(offsetPoses.get(3), new Rotation2d()));
             }
 
             double xOutput = xPid.calculate(currentPose.getX(), closestPose.getX());
