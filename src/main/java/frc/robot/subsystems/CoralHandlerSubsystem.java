@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -199,14 +200,14 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmMotor.set(0);
     }
 
-    public void configureButtonBindings() {
+    public void configureButtonBindings(Swerve swerve) {
 
         Constants.Controls.Driver.X_score.onTrue(score());
         
         Constants.Controls.Operator.B_load.onTrue(readyArmAndElevator(State.Intake));
-        Constants.Controls.Operator.Y_l4.onTrue(readyArmAndElevator(State.L4));
-        Constants.Controls.Operator.X_l3.onTrue(readyArmAndElevator(State.L3));
-        Constants.Controls.Operator.A_l2.onTrue(readyArmAndElevator(State.L2));
+        Constants.Controls.Operator.Y_l4.onTrue(readyArmAndElevator(State.L4).alongWith(new InstantCommand(()->{swerve.setScoreHeight(true);})));
+        Constants.Controls.Operator.X_l3.onTrue(readyArmAndElevator(State.L3).alongWith(new InstantCommand(()->{swerve.setScoreHeight(false);})));
+        Constants.Controls.Operator.A_l2.onTrue(readyArmAndElevator(State.L2).alongWith(new InstantCommand(()->{swerve.setScoreHeight(false);})));
         Constants.Controls.Operator.RB_cancelScore.onTrue(restArmAndElevator());
     }
 }

@@ -269,6 +269,9 @@ public final class Constants {
         public static final class Operator {
             public static final Joystick operatorJoystick = new Joystick(1);
 
+            public static final Trigger LT_setScoreSideLeft = new Trigger(() -> operatorJoystick.getRawAxis(XboxController.Axis.kLeftTrigger.value) > 0.7);
+            public static final Trigger RT_setScoreSideRight = new Trigger(() -> operatorJoystick.getRawAxis(XboxController.Axis.kRightTrigger.value) > 0.7);
+
             public static final JoystickButton LB_ballIntake = new JoystickButton(operatorJoystick, XboxController.Button.kLeftBumper.value);
             public static final JoystickButton RB_ballExpel = new JoystickButton(operatorJoystick, XboxController.Button.kRightBumper.value);
             public static final JoystickButton BACK_climberLatch = new JoystickButton(operatorJoystick, XboxController.Button.kBack.value);

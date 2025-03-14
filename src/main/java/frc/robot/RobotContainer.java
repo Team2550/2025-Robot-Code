@@ -72,9 +72,11 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
             zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        Constants.Controls.Driver.LT_autoAlign.whileTrue(s_Swerve.pathfindToClosestPoint());
+        Constants.Controls.Driver.LT_autoAlign.whileTrue(s_Swerve.pidDriveToTarget());
+        Constants.Controls.Operator.LT_setScoreSideLeft.onTrue(new InstantCommand(() -> {s_Swerve.setScoreSide(true);}));
+        Constants.Controls.Operator.RT_setScoreSideRight.onTrue(new InstantCommand(() -> {s_Swerve.setScoreSide(false);}));
 
-        s_CoralHandler.configureButtonBindings();
+        s_CoralHandler.configureButtonBindings(s_Swerve);
         s_BallGrabber.configureButtonBindings();
         s_Climber.configureButtonBindings();
     }
