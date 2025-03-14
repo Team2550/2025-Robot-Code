@@ -50,7 +50,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         L1(     0.1,   0.05, -73.12, -53.08),
         L2(     0.309, 0.05, -73.12, -53.08),
         L3(     0.732, 0.3,  -74.70, -53.34),
-        L4(     1.295, 0.75, -71.28, -54.23);
+        L4(     1.295, 0.75, -85, -54.23);
 
         double elevatorHeightMeters;
         double safeArmRotationHeightThresholdMeters;

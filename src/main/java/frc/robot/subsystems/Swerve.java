@@ -230,10 +230,10 @@ public class Swerve extends SubsystemBase {
 
         List<Pose2d> offsetPoses = Arrays.asList(
             new Pose2d(-0.18415, 0, Rotation2d.fromDegrees(0)), //Left Pole L2 and, L3
-            new Pose2d(-0.18415, -0.5, Rotation2d.fromDegrees(0)), //Left Pole L4
+            new Pose2d(-0.18415, -0.3048, Rotation2d.fromDegrees(0)), //Left Pole L4
             
             new Pose2d(0.18415, 0, Rotation2d.fromDegrees(0)), //Right Pole L2 and, L3
-            new Pose2d(0.18415, -0.5, Rotation2d.fromDegrees(0)) //Right Pole L4
+            new Pose2d(0.18415, -0.3048, Rotation2d.fromDegrees(0)) //Right Pole L4
 
         );
 
@@ -288,11 +288,11 @@ public class Swerve extends SubsystemBase {
     );
 
     List<Translation2d> offsetPoses = Arrays.asList(
-        new Translation2d(0, 0.18415), //Left Pole L2 and, L3
-        new Translation2d(-0.5, 0.18415), //Left Pole L4
+        new Translation2d(0, 0.18415-0.3048), //Left Pole L2 and, L3
+        new Translation2d(-0.5, 0.18415-0.3048), //Left Pole L4
         
-        new Translation2d(0, -0.18415), //Right Pole L2 and, L3
-        new Translation2d(-0.5, -0.18415) //Right Pole L4
+        new Translation2d(0, -0.18415-0.3048), //Right Pole L2 and, L3
+        new Translation2d(-0.5, -0.18415-0.3048) //Right Pole L4
     );
 
     // public Command pathfindToClosestPoint() {
