@@ -44,9 +44,9 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     
     Rotation2d arm = new Rotation2d(-90 * (Math.PI/180), 0);
 
-    private enum State {
+    public enum State {
         Rest(   0.1,     0,    -90,    0),
-        Intake( 1.08,  0.65, -248,   0),
+        Intake( 1.04,  0.65, -248,   0),
         L1(     0.1,   0.05, -73.12, -53.08),
         L2(     0.309, 0.05, -73.12, -53.08),
         L3(     0.732, 0.3,  -74.70, -53.34),
@@ -67,7 +67,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
 
     private State currentState;
 
-    private Command readyArmAndElevator(State state) {
+    public Command readyArmAndElevator(State state) {
         currentState = state;
         Rotation2d armRotation2d = new Rotation2d(state.readyAngleDegrees * (Math.PI/180));
         return Commands.sequence(
@@ -78,6 +78,10 @@ public class CoralHandlerSubsystem extends SubsystemBase {
             new WaitUntilCommand(() -> mElevatorMotor.getPosition().getValueAsDouble() > state.safeArmRotationHeightThresholdMeters) //TODO: set to actual height
                 .andThen(this.runOnce(() -> { mArmMotor.setControl(mArmRequest.withPosition(armRotation2d.getRotations())); } ))
         );
+    }
+
+    public Command controlGripperCommand(boolean isGripped){
+        return this.runOnce(() -> mCoralGrabberSolenoid.set(isGripped ? DoubleSolenoid.Value.kReverse : DoubleSolenoid.Value.kForward));
     }
 
     private Command restArmAndElevator() {
@@ -92,7 +96,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         );
     }
 
-    private Command score() {
+    public Command score() {
 
         return Commands.sequence(
             this.runOnce(() -> {
@@ -203,6 +207,8 @@ public class CoralHandlerSubsystem extends SubsystemBase {
     public void configureButtonBindings(Swerve swerve) {
 
         Constants.Controls.Driver.X_score.onTrue(score());
+        Constants.Controls.Driver.RB_scoringAction.onTrue(controlGripperCommand(false));
+        Constants.Controls.Driver.RB_scoringAction.onFalse(controlGripperCommand(true));
         
         Constants.Controls.Operator.B_load.onTrue(readyArmAndElevator(State.Intake));
         Constants.Controls.Operator.Y_l4.onTrue(readyArmAndElevator(State.L4).alongWith(new InstantCommand(()->{swerve.setScoreHeight(true);})));

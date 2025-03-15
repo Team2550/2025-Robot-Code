@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.TeleopCoral;
@@ -18,6 +19,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CoralHandlerSubsystem;
 import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CoralHandlerSubsystem.State;
 
 public class RobotContainer {
     private Compressor mCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
@@ -72,7 +74,7 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
             zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        Constants.Controls.Driver.LT_autoAlign.whileTrue(s_Swerve.pidDriveToTarget());
+        Constants.Controls.Driver.LB_autoAlign.whileTrue(s_Swerve.pidDriveToTarget());
         Constants.Controls.Operator.LT_setScoreSideLeft.onTrue(new InstantCommand(() -> {s_Swerve.setScoreSide(true);}));
         Constants.Controls.Operator.RT_setScoreSideRight.onTrue(new InstantCommand(() -> {s_Swerve.setScoreSide(false);}));
 
@@ -85,8 +87,15 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
+        return Commands.sequence(
+            s_CoralHandler.readyArmAndElevator(State.L3),
+            new InstantCommand(()->{s_Swerve.setScoreHeight(false);}),
+            new InstantCommand(() -> {s_Swerve.setScoreSide(false);}),
+            s_Swerve.pidDriveToTarget().withTimeout(5),
+            s_CoralHandler.score()
+            );
         // return new PathPlannerAuto("New Auto");
-        return autoChooser.getSelected();
+        // return autoChooser.getSelected();
         // return null;
     }
 }

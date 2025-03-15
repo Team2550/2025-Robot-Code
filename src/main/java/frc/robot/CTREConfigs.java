@@ -84,13 +84,13 @@ public final class CTREConfigs {
         // ARM CONFIGURATION
 
         armMotorFXConfig.CurrentLimits.StatorCurrentLimit = 120;
-        armMotorFXConfig.CurrentLimits.SupplyCurrentLimit = 40;
+        armMotorFXConfig.CurrentLimits.SupplyCurrentLimit = 20;
         armMotorFXConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         armMotorFXConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         armMotorFXConfig.Feedback.SensorToMechanismRatio = 62.5;
 
         armMotorPIDConfig.GravityType = GravityTypeValue.Arm_Cosine;
-        armMotorPIDConfig.kP = 30;
+        armMotorPIDConfig.kP = 20;
         //armMotorPIDConfig.kI = 0.05;
         //armMotorPIDConfig.kD = 0.1;
         //armMotorPIDConfig.kG = -2;

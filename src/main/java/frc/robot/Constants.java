@@ -63,7 +63,7 @@ public final class Constants {
                 Rotation2d.fromDegrees(0).getRadians(), 
                 Rotation2d.fromDegrees(0).getRadians()));
         
-        public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
+        public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(0.5, 0.5, 0.5);
 
 
         public static final String localizationCameraTwoName = "coral-side-camera";
@@ -256,8 +256,8 @@ public final class Constants {
         public static final class Driver {
             public static final Joystick driverJoystick = new Joystick(0);
 
-            public static final Trigger LT_autoAlign = new Trigger(() -> driverJoystick.getRawAxis(XboxController.Axis.kLeftTrigger.value) > 0.7);
-            public static final Trigger RT_scoringAction = new Trigger(() -> driverJoystick.getRawAxis(XboxController.Axis.kRightTrigger.value) > 0.7);
+            public static final JoystickButton LB_autoAlign = new JoystickButton(driverJoystick, XboxController.Button.kLeftBumper.value);
+            public static final JoystickButton RB_scoringAction = new JoystickButton(driverJoystick, XboxController.Button.kRightBumper.value);
 
             public static final JoystickButton Y_zeroGyro = new JoystickButton(driverJoystick, XboxController.Button.kY.value);
             public static final JoystickButton BACK_climb = new JoystickButton(driverJoystick, XboxController.Button.kBack.value);
