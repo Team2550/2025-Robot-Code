@@ -185,7 +185,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         mArmAngle = mMotorNetworkTable.getEntry("ArmAngle");
         mArmAngleTolCalc = mMotorNetworkTable.getEntry("giggity");
     }
-
     public Command runSysIdQuasistatic(Direction direction) {
         return sysId.quasistatic(direction);
     }

@@ -27,7 +27,6 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
     /* Controllers */
     private final Joystick driver = new Joystick(0);
-    
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
