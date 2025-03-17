@@ -71,7 +71,7 @@ public final class CTREConfigs {
 
         elevatorMotorFXConfig.CurrentLimits.StatorCurrentLimit = 120;
         elevatorMotorFXConfig.CurrentLimits.SupplyCurrentLimit = 40;
-        elevatorMotorFXConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        elevatorMotorFXConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         elevatorMotorFXConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         elevatorMotorFXConfig.Feedback.SensorToMechanismRatio = 52.17;
 
@@ -84,14 +84,13 @@ public final class CTREConfigs {
         // ARM CONFIGURATION
 
         armMotorFXConfig.CurrentLimits.StatorCurrentLimit = 120;
-        armMotorFXConfig.CurrentLimits.SupplyCurrentLimit = 40;
-        armMotorFXConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        armMotorFXConfig.CurrentLimits.SupplyCurrentLimit = 20;
+        armMotorFXConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         armMotorFXConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         armMotorFXConfig.Feedback.SensorToMechanismRatio = 62.5;
 
         armMotorPIDConfig.GravityType = GravityTypeValue.Arm_Cosine;
         armMotorPIDConfig.kP = 20;
-        armMotorPIDConfig.kS = 5.0;
         //armMotorPIDConfig.kI = 0.05;
         //armMotorPIDConfig.kD = 0.1;
         //armMotorPIDConfig.kG = -2;

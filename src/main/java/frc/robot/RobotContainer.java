@@ -2,7 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.TeleopCoral;
 import frc.robot.commands.TeleopSwerve;
@@ -20,7 +19,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CoralHandlerSubsystem;
 import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.Swerve;
-import frc.robot.subsystems.CoralHandlerSubsystem.CoralHandlerStateMachine.State;
+import frc.robot.subsystems.CoralHandlerSubsystem.State;
 
 public class RobotContainer {
     private Compressor mCompressor = new Compressor(PneumaticsModuleType.CTREPCM);
@@ -28,7 +27,6 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
     /* Controllers */
     private final Joystick driver = new Joystick(0);
-
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
@@ -46,13 +44,8 @@ public class RobotContainer {
     private final Climber s_Climber =                    new Climber();
     private final Swerve s_Swerve =                      new Swerve(s_PhotonVision);
 
-    // private CoralHandlerSubsystem.CoralHandlerStateMachine.State operatorSelectedCoralExpulsionState;
-    // private int operatorReefSideDPadSelectionPOV;
-    // private State queuedState;
-
     /* The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        // queuedState = State.Rest;
         mCompressor.enableDigital(); //We may want to use analog or hybrid
 
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -79,9 +72,12 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings() {
-        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
+            zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
+        Constants.Controls.Driver.LB_autoAlign.whileTrue(s_Swerve.pidDriveToTarget());
+        Constants.Controls.Operator.LT_setScoreSideLeft.onTrue(new InstantCommand(() -> {s_Swerve.setScoreSide(true);}));
+        Constants.Controls.Operator.RT_setScoreSideRight.onTrue(new InstantCommand(() -> {s_Swerve.setScoreSide(false);}));
 
-        s_CoralHandler.configureButtonBindings();
+        s_CoralHandler.configureButtonBindings(s_Swerve);
         s_BallGrabber.configureButtonBindings();
         s_Climber.configureButtonBindings();
     }
@@ -90,13 +86,17 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
+
+        // return Commands.sequence(
+        //     s_CoralHandler.readyArmAndElevator(State.L3),
+        //     new InstantCommand(()->{s_Swerve.setScoreHeight(false);}),
+        //     new InstantCommand(() -> {s_Swerve.setScoreSide(false);}),
+        //     s_Swerve.pidDriveToTarget().withTimeout(5),
+        //     s_CoralHandler.score()
+        //     );
+        
         // return new PathPlannerAuto("New Auto");
-
-        return new SequentialCommandGroup(
-        //     s_CoralHandler.setElevatorAndArm(State.LPOS),
-             new TeleopSwerve(s_Swerve, () -> -0.75, () -> 0, () -> 0, () -> 0, () -> false).withTimeout(0.5),  
-             new TeleopSwerve(s_Swerve, () -> 0.75, () -> 0, () -> 0, () -> 0, () -> false).withTimeout(0.25));
-
-        //return null;
+        // return autoChooser.getSelected();
+        return null;
     }
 }
