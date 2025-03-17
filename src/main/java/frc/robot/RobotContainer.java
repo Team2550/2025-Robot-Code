@@ -87,15 +87,17 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        return Commands.sequence(
-            s_CoralHandler.readyArmAndElevator(State.L3),
-            new InstantCommand(()->{s_Swerve.setScoreHeight(false);}),
-            new InstantCommand(() -> {s_Swerve.setScoreSide(false);}),
-            s_Swerve.pidDriveToTarget().withTimeout(5),
-            s_CoralHandler.score()
-            );
+
+        // return Commands.sequence(
+        //     s_CoralHandler.readyArmAndElevator(State.L3),
+        //     new InstantCommand(()->{s_Swerve.setScoreHeight(false);}),
+        //     new InstantCommand(() -> {s_Swerve.setScoreSide(false);}),
+        //     s_Swerve.pidDriveToTarget().withTimeout(5),
+        //     s_CoralHandler.score()
+        //     );
+        
         // return new PathPlannerAuto("New Auto");
         // return autoChooser.getSelected();
-        // return null;
+        return null;
     }
 }

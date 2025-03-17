@@ -48,7 +48,7 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         Rest(   0.1,     0,    -90,    0),
         Intake( 1.04,  0.65, -248,   0),
         L1(     0.1,   0.05, -73.12, -53.08),
-        L2(     0.309, 0.05, -73.12, -53.08),
+        L2(     0.309, 0.05, -74.70, -53.08),
         L3(     0.732, 0.3,  -74.70, -53.34),
         L4(     1.295, 0.75, -85, -54.23);
 
@@ -214,6 +214,6 @@ public class CoralHandlerSubsystem extends SubsystemBase {
         Constants.Controls.Operator.Y_l4.onTrue(readyArmAndElevator(State.L4).alongWith(new InstantCommand(()->{swerve.setScoreHeight(true);})));
         Constants.Controls.Operator.X_l3.onTrue(readyArmAndElevator(State.L3).alongWith(new InstantCommand(()->{swerve.setScoreHeight(false);})));
         Constants.Controls.Operator.A_l2.onTrue(readyArmAndElevator(State.L2).alongWith(new InstantCommand(()->{swerve.setScoreHeight(false);})));
-        Constants.Controls.Operator.RB_cancelScore.onTrue(restArmAndElevator());
+        // Constants.Controls.Operator.RB_cancelScore.onTrue(restArmAndElevator());
     }
 }

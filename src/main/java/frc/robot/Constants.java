@@ -53,17 +53,17 @@ public final class Constants {
     public static final class vision {
         public static final AprilTagFieldLayout kTagLayout = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
 
-        public static final String localizationCameraOneName = "Camera_Module_v1";
+        public static final String localizationCameraOneName = "USB_Camera";
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
             new Translation3d(
-                Units.inchesToMeters(-3), //14in left of center
-                Units.inchesToMeters(14), //3in behind center
+                Units.inchesToMeters(-1), //12.5in left of center
+                Units.inchesToMeters(12.5), //3in behind center
                 Units.inchesToMeters(12)), //12in high
             new Rotation3d(0, 
                 Rotation2d.fromDegrees(0).getRadians(), 
                 Rotation2d.fromDegrees(0).getRadians()));
         
-        public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(0.5, 0.5, 0.5);
+        public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(1, 1, 0.5);
 
 
         public static final String localizationCameraTwoName = "coral-side-camera";

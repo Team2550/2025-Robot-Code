@@ -297,11 +297,11 @@ public class Swerve extends SubsystemBase {
     );
 
     List<Translation2d> offsetPoses = Arrays.asList(
-        new Translation2d(0, 0.18415-0.3048), //Left Pole L2 and, L3
-        new Translation2d(-0.0508, 0.18415-0.3048), //Left Pole L4
+        new Translation2d(0, 0.17145-0.3048), //Left Pole L2 and, L3
+        new Translation2d(-0.0508, 0.17145-0.3048), //Left Pole L4
         
-        new Translation2d(0, -0.18415-0.3048), //Right Pole L2 and, L3
-        new Translation2d(-0.0508, -0.18415-0.3048) //Right Pole L4
+        new Translation2d(0, -0.17145-0.3048), //Right Pole L2 and, L3
+        new Translation2d(-0.0508, -0.17145-0.3048) //Right Pole L4
     );
 
     // public Command pathfindToClosestPoint() {
@@ -358,13 +358,18 @@ public class Swerve extends SubsystemBase {
 
             double xOutput = xPid.calculate(currentPose.getX(), closestPose.getX());
             double yOutput = yPid.calculate(currentPose.getY(), closestPose.getY());
+    
+            // double xOutput = -(currentPose.getX() - closestPose.getX())*0.5;
+            // double yOutput = -(currentPose.getY() - closestPose.getY())*0.5;
+            // double rOutput = (currentPose.getRotation().getRadians() - closestPose.getRotation().getRadians()) * 0.25;
+            // double rOutput = 0;
             double rOutput = rPid.calculate(
                 currentPose.getRotation().getRadians(), 
                 closestPose.getRotation().getRadians()
             );
 
-            if(Math.abs(xOutput)<0.015){xOutput=0;}
-            if(Math.abs(yOutput)<0.015){yOutput=0;}
+            if(Math.abs(xOutput)<0.0125){xOutput=0;}
+            if(Math.abs(yOutput)<0.0125){yOutput=0;}
             if(Math.abs(rOutput)<0.025){rOutput=0;}
             
             driveForAutoAlign(new Translation2d(xOutput*0.5, yOutput*0.5), rOutput*0.5, true, false);
