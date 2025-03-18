@@ -263,6 +263,7 @@ public final class Constants {
             public static final JoystickButton BACK_climb = new JoystickButton(driverJoystick, XboxController.Button.kBack.value);
             public static final JoystickButton START_unClimb = new JoystickButton(driverJoystick, XboxController.Button.kStart.value);
             public static final JoystickButton X_score = new JoystickButton(driverJoystick, XboxController.Button.kX.value);
+            public static final JoystickButton A_dropPosition = new JoystickButton(driverJoystick, XboxController.Button.kA.value);
 
         }
 
