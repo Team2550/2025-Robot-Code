@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -95,6 +96,8 @@ public class RobotContainer {
         //     s_CoralHandler.score()
         //     );
         
+        //return s_Swerve.pidDriveToTarget(new Pose2d(1, 1.1, new Rotation2d(-0.7853982))).withTimeout(5);
+
         // return new PathPlannerAuto("New Auto");
         // return autoChooser.getSelected();
         return null;

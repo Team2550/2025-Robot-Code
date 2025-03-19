@@ -57,7 +57,7 @@ public final class Constants {
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
             new Translation3d(
                 Units.inchesToMeters(-1), //12.5in left of center
-                Units.inchesToMeters(12.5), //3in behind center
+                Units.inchesToMeters(12.5), //1in behind center
                 Units.inchesToMeters(12)), //12in high
             new Rotation3d(0, 
                 Rotation2d.fromDegrees(0).getRadians(), 
@@ -66,17 +66,18 @@ public final class Constants {
         public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(1, 1, 0.5);
 
 
-        public static final String localizationCameraTwoName = "coral-side-camera";
+        public static final String localizationCameraTwoName = "USB_Camera (1)";
         public static final Transform3d localizationCameraTwoToRobot = new Transform3d(
             new Translation3d(
-                Units.inchesToMeters(0),
-                Units.inchesToMeters(0),
-                Units.inchesToMeters(0)),
-            new Rotation3d(0, 
+                Units.inchesToMeters(-3),
+                Units.inchesToMeters(4.625),
+                Units.inchesToMeters(35.25)),
+            new Rotation3d(
                 Rotation2d.fromDegrees(0).getRadians(), 
-                Rotation2d.fromDegrees(0).getRadians()));
+                Rotation2d.fromDegrees(45).getRadians(), 
+                Rotation2d.fromDegrees(180).getRadians()));
         
-        public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(0.1, 0.1, 0.5);
+        public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(1, 1, 0.5);
 
         public static final String localizationCameraThreeName = "algae-side-camera";
         public static final Transform3d localizationCameraThreeToRobot = new Transform3d(

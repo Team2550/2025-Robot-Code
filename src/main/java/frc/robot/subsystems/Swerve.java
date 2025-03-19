@@ -327,6 +327,25 @@ public class Swerve extends SubsystemBase {
     //     return pidDriveToTarget(closestPose);
     // }
 
+    public Command pidDriveToTarget(Pose2d pose){
+        return this.run(() -> { 
+        Pose2d currentPose = getPose();
+            double xOutput = xPid.calculate(currentPose.getX(), pose.getX());
+            double yOutput = yPid.calculate(currentPose.getY(), pose.getY());
+
+            double rOutput = rPid.calculate(
+                currentPose.getRotation().getRadians(), 
+                pose.getRotation().getRadians()
+            );
+
+            if(Math.abs(xOutput)<0.0125){xOutput=0;}
+            if(Math.abs(yOutput)<0.0125){yOutput=0;}
+            if(Math.abs(rOutput)<0.025){rOutput=0;}
+            
+            driveForAutoAlign(new Translation2d(xOutput*0.5, yOutput*0.5), rOutput*0.5, true, false);
+        });
+    }
+    
     public Command pidDriveToTarget() {
         return this.run(()-> {
             Pose2d currentPose = getPose();
@@ -386,13 +405,13 @@ public class Swerve extends SubsystemBase {
                             est.estimatedPose.toPose2d(), est.timestampSeconds);
                 });
 
-        // visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraTwoName);
-        // visionEst.ifPresent(
-        //         est -> {
-        //             m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraTwoStdDev);
-        //             m_PoseEstimator.addVisionMeasurement(
-        //                     est.estimatedPose.toPose2d(), est.timestampSeconds);
-        //         });
+        visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraTwoName);
+        visionEst.ifPresent(
+                est -> {
+                    m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraTwoStdDev);
+                    m_PoseEstimator.addVisionMeasurement(
+                            est.estimatedPose.toPose2d(), est.timestampSeconds);
+                });
     }
 
     public Pose2d getEstimatedPosition(){return new Pose2d();}; 
