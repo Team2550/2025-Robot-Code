@@ -34,6 +34,8 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
+    private boolean coralCamEnabled;
+
     private PIDController xPid = new PIDController(Constants.AutoConstants.kPXController,0,0); 
     private PIDController yPid = new PIDController(Constants.AutoConstants.kPYController,0,0); 
     private PIDController rPid = new PIDController(Constants.AutoConstants.kPThetaController,0,0); 
@@ -48,6 +50,7 @@ public class Swerve extends SubsystemBase {
 
 
     public Swerve(PhotonVision vision) {
+        coralCamEnabled = false;
         rPid.enableContinuousInput(-Math.PI, Math.PI);
 
         scoringPositionIsL4 = false;
@@ -338,9 +341,9 @@ public class Swerve extends SubsystemBase {
                 pose.getRotation().getRadians()
             );
 
-            if(Math.abs(xOutput)<0.0125){xOutput=0;}
-            if(Math.abs(yOutput)<0.0125){yOutput=0;}
-            if(Math.abs(rOutput)<0.025){rOutput=0;}
+            // if(Math.abs(xOutput)<0.0125){xOutput=0;}
+            // if(Math.abs(yOutput)<0.0125){yOutput=0;}
+            // if(Math.abs(rOutput)<0.025){rOutput=0;}
             
             driveForAutoAlign(new Translation2d(xOutput*0.5, yOutput*0.5), rOutput*0.5, true, false);
         });
@@ -395,16 +398,30 @@ public class Swerve extends SubsystemBase {
         }); 
     }
 
+    public Command turnCoralCamOn(){
+        return this.runOnce(() -> {
+            coralCamEnabled = true;
+        });
+    }
+
+    public Command turnCoralCamOff(){
+        return this.runOnce(() -> {
+            coralCamEnabled = false;
+        });
+    }
+
     /*Vision Functions */
     public void updateVisionLocalization() {
         var visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraOneName);
+        
+        if(coralCamEnabled){
         visionEst.ifPresent(
                 est -> {
                     m_PoseEstimator.setVisionMeasurementStdDevs(Constants.vision.localizationCameraOneStdDev);
                     m_PoseEstimator.addVisionMeasurement(
                             est.estimatedPose.toPose2d(), est.timestampSeconds);
                 });
-
+            }
         visionEst = m_photonVision.getEstimatedGlobalPose(Constants.vision.localizationCameraTwoName);
         visionEst.ifPresent(
                 est -> {

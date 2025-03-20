@@ -53,7 +53,7 @@ public final class Constants {
     public static final class vision {
         public static final AprilTagFieldLayout kTagLayout = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
 
-        public static final String localizationCameraOneName = "USB_Camera";
+        public static final String localizationCameraOneName = "Coral Camera";
         public static final Transform3d localizationCameraOneToRobot = new Transform3d(
             new Translation3d(
                 Units.inchesToMeters(-1), //12.5in left of center
@@ -66,12 +66,12 @@ public final class Constants {
         public static Matrix<N3, N1> localizationCameraOneStdDev = VecBuilder.fill(1, 1, 0.5);
 
 
-        public static final String localizationCameraTwoName = "USB_Camera (1)";
+        public static final String localizationCameraTwoName = "Source Camera";
         public static final Transform3d localizationCameraTwoToRobot = new Transform3d(
             new Translation3d(
-                Units.inchesToMeters(-3),
-                Units.inchesToMeters(4.625),
-                Units.inchesToMeters(35.25)),
+                Units.inchesToMeters(35.25), //35.25 Vertical
+                Units.inchesToMeters(4.625),//4.625 Left Of Center
+                Units.inchesToMeters(-7)),//-7 Behind Center
             new Rotation3d(
                 Rotation2d.fromDegrees(0).getRadians(), 
                 Rotation2d.fromDegrees(45).getRadians(), 
@@ -259,6 +259,11 @@ public final class Constants {
 
             public static final JoystickButton LB_autoAlign = new JoystickButton(driverJoystick, XboxController.Button.kLeftBumper.value);
             public static final JoystickButton RB_scoringAction = new JoystickButton(driverJoystick, XboxController.Button.kRightBumper.value);
+
+            public static final int LT_strafeLeftVal = XboxController.Axis.kLeftTrigger.value;
+            public static final int RT_strafeRightVal = XboxController.Axis.kRightTrigger.value;
+            public static final Trigger LT_strafeLeft = new Trigger(() -> driverJoystick.getRawAxis(LT_strafeLeftVal) > 0.1);
+            public static final Trigger RT_strafeRight = new Trigger(() -> driverJoystick.getRawAxis(RT_strafeRightVal) > 0.1);
 
             public static final JoystickButton Y_zeroGyro = new JoystickButton(driverJoystick, XboxController.Button.kY.value);
             public static final JoystickButton BACK_climb = new JoystickButton(driverJoystick, XboxController.Button.kBack.value);
