@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -21,10 +22,12 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.SwerveModule;
@@ -34,11 +37,13 @@ public class Swerve extends SubsystemBase {
     public Field2d m_Field = new Field2d();//Creates a field object to visualize the robot pose in smartdashboard. 
     public Pigeon2 gyro;
 
+    private Field2d f = new Field2d();
+
     private boolean coralCamEnabled;
 
-    private PIDController xPid = new PIDController(Constants.AutoConstants.kPXController,0,0); 
-    private PIDController yPid = new PIDController(Constants.AutoConstants.kPYController,0,0); 
-    private PIDController rPid = new PIDController(Constants.AutoConstants.kPThetaController,0,0); 
+    private PIDController xPid = new PIDController(Constants.AutoConstants.AutoAlignkPXController,0,0); 
+    private PIDController yPid = new PIDController(Constants.AutoConstants.AutoAlignkPYController,0,0); 
+    private PIDController rPid = new PIDController(Constants.AutoConstants.AutoAlignkPThetaController,0,0); 
 
     private boolean scoringPositionIsLeft;
     private boolean scoringPositionIsL4;
@@ -50,7 +55,7 @@ public class Swerve extends SubsystemBase {
 
 
     public Swerve(PhotonVision vision) {
-        coralCamEnabled = false;
+        coralCamEnabled = true;
         rPid.enableContinuousInput(-Math.PI, Math.PI);
 
         scoringPositionIsL4 = false;
@@ -239,6 +244,7 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
+        coralCamEnabled = SmartDashboard.getBoolean("Coral Camera Enabled", coralCamEnabled);
         updateVisionLocalization();
         m_PoseEstimator.update(getGyroYaw(), getModulePositions());
         updateFieldView();
@@ -280,6 +286,17 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    List<Pose2d> sourcePoses = Arrays.asList(
+        //Blue Sources
+        new Pose2d(0.8117, 6.93, Rotation2d.fromDegrees(-54)),   
+        new Pose2d(0.8117, 1.11, Rotation2d.fromDegrees(54)), 
+
+        //Red Sources
+        new Pose2d(16.7543, 6.93, new Rotation2d(Units.degreesToRadians(230))),
+        //new Pose2d(16.6739, 1.0486, Rotation2d.fromDegrees(126))
+        new Pose2d(16.7543, 1.11, Rotation2d.fromDegrees(126)) //16.7543 //1.11 //16.2427, 0.731
+
+    );
 
     List<Pose2d> targetPoses = Arrays.asList(
         //Blue Side
@@ -300,8 +317,8 @@ public class Swerve extends SubsystemBase {
     );
 
     List<Translation2d> offsetPoses = Arrays.asList(
-        new Translation2d(0, 0.17145-0.3048), //Left Pole L2 and, L3
-        new Translation2d(-0.0508, 0.17145-0.3048), //Left Pole L4
+        new Translation2d(0, 0.17145-0.3048 - 0.05), //Left Pole L2 and, L3 //+0.03
+        new Translation2d(-0.0508, 0.17145-0.3048 - 0.05), //Left Pole L4
         
         new Translation2d(0, -0.17145-0.3048), //Right Pole L2 and, L3
         new Translation2d(-0.0508, -0.17145-0.3048) //Right Pole L4
@@ -330,24 +347,39 @@ public class Swerve extends SubsystemBase {
     //     return pidDriveToTarget(closestPose);
     // }
 
-    public Command pidDriveToTarget(Pose2d pose){
-        return this.run(() -> { 
+public Command pidDriveToTarget(Supplier<Pose2d> targetSupplier){
+    return this.run(() -> { 
+        turnCoralCamOff();
+
+        f.setRobotPose(targetSupplier.get());
+        SmartDashboard.putData("pidTarget", f);
+
+        // Recalculate the target every iteration:
+        Pose2d target = targetSupplier.get();
         Pose2d currentPose = getPose();
-            double xOutput = xPid.calculate(currentPose.getX(), pose.getX());
-            double yOutput = yPid.calculate(currentPose.getY(), pose.getY());
 
-            double rOutput = rPid.calculate(
-                currentPose.getRotation().getRadians(), 
-                pose.getRotation().getRadians()
-            );
+        double xOutput = xPid.calculate(currentPose.getX(), target.getX());
+        double yOutput = yPid.calculate(currentPose.getY(), target.getY());
+        double rOutput = rPid.calculate(
+            currentPose.getRotation().getRadians(), 
+            target.getRotation().getRadians()
+        );
 
-            // if(Math.abs(xOutput)<0.0125){xOutput=0;}
-            // if(Math.abs(yOutput)<0.0125){yOutput=0;}
-            // if(Math.abs(rOutput)<0.025){rOutput=0;}
-            
-            driveForAutoAlign(new Translation2d(xOutput*0.5, yOutput*0.5), rOutput*0.5, true, false);
-        });
-    }
+        // if(Math.abs(xOutput) < 0.0125){ xOutput = 0; }
+        // if(Math.abs(yOutput) < 0.0125){ yOutput = 0; }
+        // if(Math.abs(rOutput) < 0.025){ rOutput = 0; }
+        
+        driveForAutoAlign(new Translation2d(xOutput , yOutput ), rOutput, true, false);
+    })
+    // .until(() -> 
+    //     xPid.calculate(getPose().getX(), targetSupplier.get().getX()) < 0.025 &&
+    //     yPid.calculate(getPose().getY(), targetSupplier.get().getY()) < 0.025 &&
+    //     Math.abs(getPose().getX() - targetSupplier.get().getX()) < 0.05 &&
+    //     Math.abs(getPose().getY() - targetSupplier.get().getY()) < 0.005
+    // )
+    ;
+}
+
     
     public Command pidDriveToTarget() {
         return this.run(()-> {
@@ -394,19 +426,43 @@ public class Swerve extends SubsystemBase {
             if(Math.abs(yOutput)<0.0125){yOutput=0;}
             if(Math.abs(rOutput)<0.025){rOutput=0;}
             
-            driveForAutoAlign(new Translation2d(xOutput*0.5, yOutput*0.5), rOutput*0.5, true, false);
+            driveForAutoAlign(new Translation2d(xOutput, yOutput), rOutput, true, false);
         }); 
     }
+
+    public Pose2d findClosestSource() {
+            Pose2d currentPose = getPose();
+
+            // Define your fixed target poses
+
+            Pose2d closestPose = sourcePoses.get(0);
+            double minDistance = currentPose.getTranslation()
+                                    .getDistance(closestPose.getTranslation());
+
+            for (Pose2d sourcePose : sourcePoses) {
+                double distance = currentPose.getTranslation()
+                                    .getDistance(sourcePose.getTranslation());
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPose = sourcePose;
+                }
+            }
+
+            return closestPose; 
+    }
+
 
     public Command turnCoralCamOn(){
         return this.runOnce(() -> {
             coralCamEnabled = true;
+            SmartDashboard.putBoolean("Coral Camera Enabled", coralCamEnabled);
         });
     }
 
     public Command turnCoralCamOff(){
         return this.runOnce(() -> {
             coralCamEnabled = false;
+            SmartDashboard.putBoolean("Coral Camera Enabled", coralCamEnabled);
         });
     }
 

@@ -77,7 +77,7 @@ public final class Constants {
                 Rotation2d.fromDegrees(45).getRadians(), 
                 Rotation2d.fromDegrees(180).getRadians()));
         
-        public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(1, 1, 0.5);
+        public static Matrix<N3, N1> localizationCameraTwoStdDev = VecBuilder.fill(0.04, 0.04, 0.5);
 
         public static final String localizationCameraThreeName = "algae-side-camera";
         public static final Transform3d localizationCameraThreeToRobot = new Transform3d(
@@ -159,7 +159,7 @@ public final class Constants {
 
         /* Swerve Profiling Values */
         /** Meters per Second */
-        public static final double maxSpeed = 2; //TODO: This must be tuned to specific robot //4.5 MPS
+        public static final double maxSpeed = 4.5; //TODO: This must be tuned to specific robot //4.5 MPS
         /** Radians per Second */
         public static final double maxAngularVelocity = 5.0; //TODO: This must be tuned to specific robot //10.0
 
@@ -227,9 +227,13 @@ public final class Constants {
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
         public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
     
-        public static final double kPXController = 2;
-        public static final double kPYController = 2;
-        public static final double kPThetaController = 2;
+        public static final double kPXController = 4;
+        public static final double kPYController = 4;
+        public static final double kPThetaController = 4;
+
+        public static final double AutoAlignkPXController = 2;
+        public static final double AutoAlignkPYController = 2;
+        public static final double AutoAlignkPThetaController = 2;
     
         /* Constraint for the motion profilied robot angle controller */
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
@@ -268,6 +272,8 @@ public final class Constants {
             public static final JoystickButton Y_zeroGyro = new JoystickButton(driverJoystick, XboxController.Button.kY.value);
             public static final JoystickButton BACK_climb = new JoystickButton(driverJoystick, XboxController.Button.kBack.value);
             public static final JoystickButton START_unClimb = new JoystickButton(driverJoystick, XboxController.Button.kStart.value);
+            public static final JoystickButton B_sourceAlign = new JoystickButton(driverJoystick, XboxController.Button.kB.value);
+            
             public static final JoystickButton X_score = new JoystickButton(driverJoystick, XboxController.Button.kX.value);
             public static final JoystickButton A_dropPosition = new JoystickButton(driverJoystick, XboxController.Button.kA.value);
 

@@ -1,0 +1,116 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "SetL3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "SetRightPole"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Drive Foward To Score From Bottom Middle"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AutoAlign1pt5Sec"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Cage Side To Source"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "SetLoadPos"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "TurnCoralCamOff"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "SourceAutoAlign"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.25
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "CloseGripper"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source To Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "SetL3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "SetRightPole"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AutoAlign3Sec"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

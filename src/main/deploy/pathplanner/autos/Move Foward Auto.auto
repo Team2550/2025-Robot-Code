@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "KNOCKOUT Speaker Amp Side to Center Notes"
+            "pathName": "Move Foward"
           }
         }
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": null,
   "choreoAuto": false
 }
